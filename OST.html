@@ -1,0 +1,2175 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Omniversal Power Scaling Tier List Maker</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #111827;
+            color: #ffffff;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+        .dropzone-active { background-color: rgba(255, 255, 255, 0.1) !important; box-shadow: inset 0 0 0 2px #3b82f6; }
+        .is-dragging { opacity: 0.5; }
+        .exporting .delete-btn, .exporting .toggle-badge-btn { display: none !important; }
+        
+        table { border-spacing: 0; border-collapse: collapse; }
+        td { border: 2px solid #334155; }
+        
+        .cropper-container { width: 100% !important; }
+        #bg-layer { transition: filter 0.3s; }
+
+        .game-title { text-shadow: 0 2px 4px rgba(0,0,0,0.5); letter-spacing: 0.5px; }
+
+        .unknown-badge {
+            position: absolute; bottom: -6px; right: -6px; width: 36px; height: 36px;
+            z-index: 5; pointer-events: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.8)); object-fit: contain;
+        }
+
+        #tier-tooltip {
+            position: fixed; pointer-events: none; z-index: 9999; background-color: #1a1e2e;
+            border: 1px solid #2e364f; border-radius: 8px; padding: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5); max-width: 320px;
+            transition: opacity 0.15s ease; opacity: 0; transform: translate(15px, 15px);
+        }
+        #tier-tooltip.show { opacity: 1; }
+
+        .character-card-wiki, .item-card-style {
+            background: linear-gradient(135deg, #2a2d3e 0%, #1f2231 100%);
+            border: 1px solid #4a4e69; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            position: relative; overflow: hidden;
+        }
+        .character-card-wiki::before, .character-card-wiki::after, .item-card-style::before, .item-card-style::after {
+            content: ''; position: absolute; width: 8px; height: 8px; border: 2px solid #5a5f78;
+        }
+        .character-card-wiki::before, .item-card-style::before { top: 4px; left: 4px; border-right: none; border-bottom: none; }
+        .character-card-wiki::after, .item-card-style::after { bottom: 4px; right: 4px; border-left: none; border-top: none; }
+        .character-card-wiki-inner::before, .character-card-wiki-inner::after, .item-card-inner::before, .item-card-inner::after {
+            content: ''; position: absolute; width: 8px; height: 8px; border: 2px solid #5a5f78;
+        }
+        .character-card-wiki-inner::before, .item-card-inner::before { top: 4px; right: 4px; border-left: none; border-bottom: none; }
+        .character-card-wiki-inner::after, .item-card-inner::after { bottom: 4px; left: 4px; border-right: none; border-top: none; }
+
+        .stat-row { display: flex; align-items: center; padding: 4px 0; }
+        .fancy-divider { position: relative; height: 1px; background: #4a4e69; margin: 24px 0; }
+        .fancy-divider::after {
+            content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(45deg);
+            width: 8px; height: 8px; background: #1e2235; border: 1px solid #4a4e69;
+        }
+        
+        #extra-info-content a, #edit-extra-info-editor a { color: #60a5fa; text-decoration: underline; cursor: pointer; }
+        #extra-info-content a:hover, #edit-extra-info-editor a:hover { color: #93c5fd; }
+        #edit-extra-info-editor:focus { outline: none; }
+        .editor-btn { background-color: transparent; border: 1px solid transparent; color: #94a3b8; padding: 4px 8px; border-radius: 4px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+        .editor-btn:hover { color: #f8fafc; }
+    </style>
+</head>
+<body class="h-screen w-screen overflow-hidden bg-[#111827] text-white" onclick="closeExtraInfoDropdown(event)">
+
+    <div id="tier-tooltip">
+        <h3 id="tt-id" class="font-bold text-blue-400 text-sm mb-1 tracking-wider">9-B</h3>
+        <h4 id="tt-name" class="font-black text-white text-base mb-1">ระดับทำลายกำแพง</h4>
+        <p id="tt-desc" class="text-xs text-slate-400 font-light leading-relaxed">สามารถทำลายกำแพงคอนกรีตหนาๆ หรือสิ่งปลูกสร้างขนาดเล็กได้</p>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 1. หน้าจอเมนูหลัก (MAIN MENU VIEW)         -->
+    <!-- ========================================== -->
+    <div id="view-main-menu" class="h-full w-full bg-[#1b2032] overflow-y-auto relative z-40 flex flex-col">
+        <div class="relative w-full h-[200px] md:h-[280px] bg-slate-800 border-b-2 border-[#3b4566] group overflow-hidden shrink-0">
+            <img id="menu-banner-img" src="" class="w-full h-full object-cover hidden" />
+            <div id="menu-banner-placeholder" class="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 flex items-center">
+                 <div class="px-8 md:px-16 z-10 w-full max-w-7xl mx-auto">
+                    <h1 class="text-3xl md:text-5xl lg:text-6xl font-black text-amber-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mb-2 tracking-wide">ยินดีต้อนรับเข้าสู่ ระบบจัดการฐานข้อมูล!</h1>
+                    <p class="text-white text-sm md:text-lg drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] font-light">ขอให้การเดินทางครั้งนี้ พาเรามุ่งไปสู่ดวงดาว</p>
+                </div>
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-r from-slate-900/90 to-transparent flex items-center pointer-events-none">
+                 <div class="px-8 md:px-16 z-10 w-full max-w-7xl mx-auto">
+                    <h1 class="text-3xl md:text-5xl lg:text-6xl font-black text-amber-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mb-2 tracking-wide">ยินดีต้อนรับเข้าสู่ ระบบจัดการฐานข้อมูล!</h1>
+                    <p class="text-white text-sm md:text-lg drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] font-light">ขอให้การเดินทางครั้งนี้ พาเรามุ่งไปสู่ดวงดาว</p>
+                </div>
+            </div>
+            <label class="absolute top-4 right-4 bg-black/50 hover:bg-black/80 text-white p-3 rounded-full cursor-pointer backdrop-blur-sm transition-colors border border-white/20 z-20 shadow-lg" title="เปลี่ยนรูปแบนเนอร์">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                <input type="file" class="hidden" accept="image/*" onchange="handleMenuImageUpload(this, 'menu-banner-img', 'menu-banner-placeholder')" />
+            </label>
+        </div>
+
+        <div class="flex-1 w-full max-w-6xl mx-auto py-12 md:py-20 px-6">
+            <div class="flex flex-wrap justify-center gap-4 md:gap-6 max-w-4xl mx-auto">
+                <div class="w-[110px] h-[110px] md:w-[150px] md:h-[150px] bg-[#1c1f2e] border border-[#333951] rounded-xl shadow-lg flex flex-col items-center justify-between cursor-pointer hover:border-amber-400 hover:bg-[#252a40] transition-all relative group pt-3 pb-3 px-2" onclick="switchView('view-characters')">
+                    <label class="absolute top-2 right-2 bg-slate-800/80 border border-slate-500 rounded p-1 cursor-pointer hover:bg-slate-700 hover:text-white text-slate-400 shadow-md opacity-0 group-hover:opacity-100 transition-opacity z-10 backdrop-blur-sm" title="เปลี่ยนรูปภาพ" onclick="event.stopPropagation()">
+                        <svg class="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        <input type="file" class="hidden" accept="image/*" onchange="handleMenuImageUpload(this, 'menu-img-chars', 'menu-icon-chars')" />
+                    </label>
+                    <div class="w-full h-[60px] md:h-[90px] flex items-center justify-center">
+                        <img id="menu-img-chars" src="" class="max-w-full max-h-full object-contain drop-shadow-md hidden" />
+                        <svg id="menu-icon-chars" class="w-10 h-10 md:w-16 md:h-16 text-slate-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    </div>
+                    <span class="text-white font-bold text-xs md:text-sm tracking-wide drop-shadow-md shrink-0">ตัวละคร</span>
+                </div>
+
+                <div class="w-[110px] h-[110px] md:w-[150px] md:h-[150px] bg-[#1c1f2e] border border-[#333951] rounded-xl shadow-lg flex flex-col items-center justify-between cursor-pointer hover:border-amber-400 hover:bg-[#252a40] transition-all relative group pt-3 pb-3 px-2" onclick="switchView('view-tierlist')">
+                    <label class="absolute top-2 right-2 bg-slate-800/80 border border-slate-500 rounded p-1 cursor-pointer hover:bg-slate-700 hover:text-white text-slate-400 shadow-md opacity-0 group-hover:opacity-100 transition-opacity z-10 backdrop-blur-sm" title="เปลี่ยนรูปภาพ" onclick="event.stopPropagation()">
+                        <svg class="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        <input type="file" class="hidden" accept="image/*" onchange="handleMenuImageUpload(this, 'menu-img-tierlist', 'menu-icon-tierlist')" />
+                    </label>
+                    <div class="w-full h-[60px] md:h-[90px] flex items-center justify-center">
+                        <img id="menu-img-tierlist" src="" class="max-w-full max-h-full object-contain drop-shadow-md hidden" />
+                        <svg id="menu-icon-tierlist" class="w-10 h-10 md:w-16 md:h-16 text-slate-500" fill="currentColor" viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+                    </div>
+                    <span class="text-white font-bold text-xs md:text-sm tracking-wide drop-shadow-md shrink-0">ทีเออร์ลิสต์</span>
+                </div>
+
+                <div class="w-[110px] h-[110px] md:w-[150px] md:h-[150px] bg-[#1c1f2e] border border-[#333951] rounded-xl shadow-lg flex flex-col items-center justify-between cursor-pointer hover:border-amber-400 hover:bg-[#252a40] transition-all relative group pt-3 pb-3 px-2" onclick="switchView('view-weapons')">
+                    <label class="absolute top-2 right-2 bg-slate-800/80 border border-slate-500 rounded p-1 cursor-pointer hover:bg-slate-700 hover:text-white text-slate-400 shadow-md opacity-0 group-hover:opacity-100 transition-opacity z-10 backdrop-blur-sm" title="เปลี่ยนรูปภาพ" onclick="event.stopPropagation()">
+                        <svg class="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        <input type="file" class="hidden" accept="image/*" onchange="handleMenuImageUpload(this, 'menu-img-weapons', 'menu-icon-weapons')" />
+                    </label>
+                    <div class="w-full h-[60px] md:h-[90px] flex items-center justify-center">
+                        <img id="menu-img-weapons" src="" class="max-w-full max-h-full object-contain drop-shadow-md hidden" />
+                        <svg id="menu-icon-weapons" class="w-10 h-10 md:w-16 md:h-16 text-slate-500" fill="currentColor" viewBox="0 0 24 24"><path d="M19.92 4.08a2.99 2.99 0 00-4.24 0l-9.19 9.19c-.39.39-.39 1.02 0 1.41l2.83 2.83c.39.39 1.02.39 1.41 0l9.19-9.19c1.17-1.17 1.17-3.07 0-4.24zM5 19H2v3h3v-3z"/></svg>
+                    </div>
+                    <span class="text-white font-bold text-xs md:text-sm tracking-wide drop-shadow-md shrink-0">อาวุธ</span>
+                </div>
+
+                <div class="w-[110px] h-[110px] md:w-[150px] md:h-[150px] bg-[#1c1f2e] border border-[#333951] rounded-xl shadow-lg flex flex-col items-center justify-between cursor-pointer hover:border-amber-400 hover:bg-[#252a40] transition-all relative group pt-3 pb-3 px-2" onclick="switchView('view-items')">
+                    <label class="absolute top-2 right-2 bg-slate-800/80 border border-slate-500 rounded p-1 cursor-pointer hover:bg-slate-700 hover:text-white text-slate-400 shadow-md opacity-0 group-hover:opacity-100 transition-opacity z-10 backdrop-blur-sm" title="เปลี่ยนรูปภาพ" onclick="event.stopPropagation()">
+                        <svg class="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        <input type="file" class="hidden" accept="image/*" onchange="handleMenuImageUpload(this, 'menu-img-items', 'menu-icon-items')" />
+                    </label>
+                    <div class="w-full h-[60px] md:h-[90px] flex items-center justify-center">
+                        <img id="menu-img-items" src="" class="max-w-full max-h-full object-contain drop-shadow-md hidden" />
+                        <svg id="menu-icon-items" class="w-10 h-10 md:w-16 md:h-16 text-slate-500" fill="currentColor" viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg>
+                    </div>
+                    <span class="text-white font-bold text-xs md:text-sm tracking-wide drop-shadow-md shrink-0">ไอเท็ม</span>
+                </div>
+
+                <div class="w-[110px] h-[110px] md:w-[150px] md:h-[150px] bg-[#1c1f2e] border border-[#333951] rounded-xl shadow-lg flex flex-col items-center justify-between cursor-pointer hover:border-amber-400 hover:bg-[#252a40] transition-all relative group pt-3 pb-3 px-2" onclick="switchView('view-map')">
+                    <label class="absolute top-2 right-2 bg-slate-800/80 border border-slate-500 rounded p-1 cursor-pointer hover:bg-slate-700 hover:text-white text-slate-400 shadow-md opacity-0 group-hover:opacity-100 transition-opacity z-10 backdrop-blur-sm" title="เปลี่ยนรูปภาพ" onclick="event.stopPropagation()">
+                        <svg class="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        <input type="file" class="hidden" accept="image/*" onchange="handleMenuImageUpload(this, 'menu-img-map', 'menu-icon-map')" />
+                    </label>
+                    <div class="w-full h-[60px] md:h-[90px] flex items-center justify-center">
+                        <img id="menu-img-map" src="" class="max-w-full max-h-full object-contain drop-shadow-md hidden" />
+                        <svg id="menu-icon-map" class="w-10 h-10 md:w-16 md:h-16 text-slate-500" fill="currentColor" viewBox="0 0 24 24"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
+                    </div>
+                    <span class="text-white font-bold text-xs md:text-sm tracking-wide drop-shadow-md shrink-0">แผนที่โลก</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 2. หน้าจอเทียร์ลิสต์ (TIER LIST VIEW)        -->
+    <!-- ========================================== -->
+    <div id="view-tierlist" class="hidden h-full w-full flex-col md:flex-row overflow-hidden">
+        <div class="flex-1 flex flex-col h-2/3 md:h-full bg-slate-900 overflow-hidden relative">
+            <header class="p-4 border-b-2 border-slate-800 bg-slate-900 shrink-0 flex items-center justify-between shadow-md z-20">
+                <div class="flex items-center gap-4">
+                    <button onclick="switchView('view-main-menu')" class="text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 p-2.5 rounded-full transition-colors border border-slate-700 shadow-sm" title="กลับเมนูหลัก">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    </button>
+                    <div>
+                        <h1 class="text-base md:text-xl font-bold text-white game-title">
+                            ตารางจัดอันดับของ 《Fic Anime》บันทึกเส้นทางสู่บัลลังก์ของพระเจ้า「ปฐมบท : ลอสเบลท์แห่งความโกลาหล」
+                        </h1>
+                        <div class="flex items-center gap-2 mt-1">
+                            <div id="save-indicator" class="flex items-center gap-1 text-xs text-slate-400 font-light">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                                <span id="save-text" class="text-emerald-400 font-medium">โหลดสำเร็จจากไฟล์เซฟ</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button id="btn-download" class="hidden md:flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white px-5 py-2 rounded font-bold shadow-lg transition-all transform hover:scale-105 active:scale-95 text-sm uppercase tracking-wider">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    บันทึกเป็นรูปภาพ
+                </button>
+            </header>
+
+            <div class="flex-1 overflow-y-auto overflow-x-auto p-4 md:p-6 pb-24" id="main-scroll">
+                <div id="tier-list-container" class="relative min-w-[800px] max-w-[1300px] mx-auto bg-black overflow-hidden shadow-2xl border-[3px] border-slate-700">
+                    <div id="bg-layer" class="absolute inset-0 bg-cover bg-center" style="background-image: none; filter: blur(0px);"></div>
+                    <div id="bg-overlay" class="absolute inset-0 bg-black/0 transition-colors duration-300" style="background-color: rgba(0, 0, 0, 0.5);"></div>
+                    <div id="table-wrapper" class="relative z-10 w-full"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-full h-1/3 md:w-[340px] md:h-full bg-slate-800 border-t-2 md:border-t-0 md:border-l-2 border-slate-700 flex flex-col shrink-0 z-30 shadow-2xl">
+            <div class="p-4 border-b border-slate-700 bg-slate-800 shrink-0 flex flex-col gap-3">
+                <h2 class="font-bold text-sm text-slate-300 uppercase tracking-wide flex items-center justify-between">
+                    《ระบบจัดการฐานข้อมูล》
+                </h2>
+                <div class="grid grid-cols-2 gap-2">
+                    <button id="btn-export-with-img" class="bg-slate-700 hover:bg-blue-600 text-slate-200 hover:text-white text-[11px] md:text-xs font-medium py-2.5 px-1 rounded transition-colors text-center leading-tight border border-slate-600 hover:border-blue-500">
+                        《เซฟ • รวมรูปภาพ》
+                    </button>
+                    <button id="btn-export-no-img" class="bg-slate-700 hover:bg-indigo-600 text-slate-200 hover:text-white text-[11px] md:text-xs font-medium py-2.5 px-1 rounded transition-colors text-center leading-tight border border-slate-600 hover:border-indigo-500">
+                        《เซฟ • ตารางเปล่า》
+                    </button>
+                </div>
+                
+                <!-- ปุ่มอัปโหลด HTML / JS เพื่ออัปเดตระบบ -->
+                <label class="cursor-pointer bg-slate-700 hover:bg-purple-600 text-purple-400 hover:text-white text-[11px] md:text-xs font-medium py-2.5 px-2 rounded transition-colors text-center leading-tight border border-slate-600 hover:border-purple-500 w-full block shadow-sm mt-1">
+                    《อัปโหลด HTML / JS • อัปเดตระบบ》
+                    <input type="file" id="btn-import-code" class="hidden" accept=".html,.js" onchange="handleCodeUpload(this)">
+                </label>
+                <p class="text-[10.5px] text-slate-400 mt-1 leading-tight text-center font-light">
+                    รองรับ .html เพื่อโหลดเซฟ และ .js เพื่ออัปเดตฟีเจอร์
+                </p>
+            </div>
+
+            <div class="p-4 border-b border-slate-700 bg-slate-800 shrink-0 flex flex-col gap-3">
+                <div class="flex items-center justify-between">
+                    <h2 class="font-bold text-sm text-slate-300 uppercase tracking-wide">คลังตัวละคร</h2>
+                    <span id="char-count" class="text-xs font-bold bg-slate-900 border border-slate-600 px-2 py-0.5 rounded-full shadow-inner">0</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <label class="cursor-pointer bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2.5 px-3 rounded flex items-center justify-center gap-1 transition-colors text-center shadow-md">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        เพิ่มภาพตัวละคร
+                        <input type="file" id="file-upload" class="hidden" multiple accept="image/*" onchange="uploadToTierlist(this)">
+                    </label>
+                    <button id="btn-clear-pool" class="bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold py-2.5 px-3 rounded transition-colors shadow-md">
+                        ล้างภาพตัวละคร
+                    </button>
+                </div>
+                <button id="btn-open-bg-settings" class="w-full bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold py-2.5 px-3 rounded border border-slate-600 flex items-center justify-center gap-2 transition-colors mt-1 shadow-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    ตั้งค่าภาพพื้นหลัง
+                </button>
+                <button id="btn-download-mobile" class="md:hidden w-full bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded font-bold text-xs transition-colors mt-2 shadow-md">
+                    บันทึกเป็นรูปภาพ
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-3 bg-slate-900/80 flex flex-wrap content-start gap-2 min-h-[150px] shadow-inner" id="character-pool"></div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 3. หน้าตัวละคร (CHARACTERS VIEW - Wiki Style)-->
+    <!-- ========================================== -->
+    <div id="view-characters" class="hidden h-full w-full flex-row bg-[#0f1223] overflow-hidden z-40 relative">
+        <div class="w-[260px] md:w-[300px] h-full bg-[#181d2c] border-r border-slate-700/50 flex flex-col shrink-0 shadow-[4px_0_15px_rgba(0,0,0,0.3)] z-10 relative">
+            <div class="p-6 pb-2 flex flex-col gap-5">
+                <div class="flex items-center gap-3">
+                    <button onclick="switchView('view-main-menu')" class="text-slate-400 hover:text-white transition-colors" title="กลับเมนูหลัก">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    </button>
+                    <h2 class="text-[22px] font-bold text-white tracking-wide">สารบัญ</h2>
+                </div>
+                <button onclick="addMainSidebarMenu()" class="w-full bg-transparent hover:bg-[#2a2d3e] text-slate-300 hover:text-white text-sm font-medium py-2.5 rounded border border-slate-600 transition-colors flex items-center justify-center gap-2">
+                    <span class="text-lg leading-none mb-0.5 font-light">+</span> เพิ่มหมวดหมู่หลัก
+                </button>
+            </div>
+            
+            <div class="border-b border-slate-700/50 mx-6 mb-3 mt-2"></div>
+            
+            <div class="flex-1 overflow-y-auto px-4 space-y-1 z-10" id="wiki-sidebar-container"></div>
+        </div>
+
+        <div class="flex-1 h-full bg-[#0f1223] overflow-y-auto relative">
+            <div class="max-w-7xl mx-auto p-8 relative">
+                <div class="mb-8 border-b border-slate-800 pb-4">
+                    <div class="text-xs text-slate-500 font-medium mb-1 tracking-wider">หน้าหลัก <span class="mx-1">/</span> <span class="text-slate-400" id="content-breadcrumb">ตัวละคร</span></div>
+                    <div class="flex items-center justify-between">
+                        <h1 class="text-2xl font-black text-amber-400 tracking-wide drop-shadow-md" id="content-title">ตัวละคร</h1>
+                        <label class="cursor-pointer bg-transparent border border-[#3b4566] hover:bg-[#2a2d3e] text-blue-400 hover:text-blue-300 text-xs font-bold py-2 px-4 rounded flex items-center justify-center gap-2 transition-colors">
+                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            เพิ่มรูปเข้าหมวดหมู่นี้
+                            <input type="file" id="char-page-upload" class="hidden" accept="image/*" onchange="uploadToWiki(this)">
+                        </label>
+                    </div>
+                </div>
+                <div id="character-grid" class="flex flex-col gap-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 4. หน้าจอรายละเอียดตัวละคร (CHARACTER DETAIL) -->
+    <!-- ========================================== -->
+    <div id="view-character-detail" class="hidden h-full w-full flex-col bg-[#0b0d17] overflow-y-auto z-50">
+        <header class="p-6 border-b border-slate-800 bg-[#161a2b] flex items-center gap-4 sticky top-0 z-20 shadow-md">
+             <button onclick="switchView('view-characters')" class="text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 p-2.5 rounded-full transition-colors border border-slate-700 shadow-sm" title="กลับหน้าตัวละคร">
+                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+             </button>
+             <h1 class="text-2xl font-bold text-white tracking-wider drop-shadow-md" id="detail-title">ข้อมูลรายละเอียด</h1>
+        </header>
+
+        <div class="p-6 md:p-10 max-w-6xl mx-auto w-full">
+            <div class="flex flex-col md:flex-row gap-8">
+                
+                <div class="w-full md:w-[350px] shrink-0 flex flex-col">
+                    <div class="w-full bg-[#161a2b] rounded-xl border border-slate-700 shadow-lg p-6 flex flex-col items-center justify-center min-h-[400px]">
+                        <div class="w-48 h-48 bg-slate-800/50 rounded-lg relative overflow-hidden border border-slate-600 flex items-center justify-center group cursor-pointer mb-4">
+                            <img id="detail-img" src="" class="max-w-full max-h-full object-cover z-10" />
+                            <label class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-20 cursor-pointer backdrop-blur-[2px]">
+                                <span class="text-white text-sm font-medium bg-blue-600 px-4 py-2 rounded-full shadow-lg flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    เปลี่ยนรูป
+                                </span>
+                                <input type="file" class="hidden" accept="image/*" onchange="handleUpdateCharacterImage(this)">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-full flex-1 flex flex-col">
+                     <div class="border-b border-slate-700/50 pb-4 mb-6">
+                         <h2 class="text-3xl md:text-4xl font-black text-white tracking-wide outline-none hover:bg-slate-800/50 rounded transition-colors inline-block px-2 -ml-2" id="detail-name" contenteditable="true" onblur="saveCharacterDetails()">ชื่อตัวละคร</h2>
+                         <p class="text-slate-400 mt-1 font-medium outline-none hover:bg-slate-800/50 rounded transition-colors inline-block px-2 -ml-2" id="detail-subtitle" contenteditable="true" onblur="saveCharacterDetails()">ฉายา / คำบรรยายสั้นๆ</p>
+                     </div>
+
+                    <div class="bg-[#161a2b] rounded-xl p-6 border border-slate-700 mb-6 shadow-lg">
+                        <div class="flex items-center gap-2 mb-4 border-l-4 border-amber-500 pl-3">
+                            <h3 class="text-base md:text-lg font-bold text-white tracking-wider uppercase">ข้อมูลพื้นฐาน</h3>
+                        </div>
+                        
+                        <div class="flex flex-col gap-2">
+                            <div class="bg-[#1a1e2e] border border-slate-700/80 rounded-md p-3 flex items-center justify-between cursor-pointer hover:border-amber-400 transition-colors group" onclick="openExtraInfoModal('tier', 'เทียร์ (Tier)')">
+                                <span class="text-slate-300 font-medium flex items-center gap-3">
+                                     <label class="cursor-pointer hover:scale-110 transition-transform" title="คลิกเพื่อเปลี่ยนไอคอน" onclick="event.stopPropagation()">
+                                         <span id="detail-view-icon1" class="flex items-center justify-center w-5 h-5"></span>
+                                         <input type="file" class="hidden" accept="image/*" onchange="handleStatIconUpload(this, 'icon1')">
+                                     </label>
+                                    <span id="detail-title-tier">เทียร์ (Tier)</span>
+                                </span>
+                                <span class="font-bold text-white bg-transparent text-right outline-none min-w-[100px]" id="detail-tier" contenteditable="true" onblur="saveCharacterDetails()" onclick="event.stopPropagation()">-</span>
+                            </div>
+
+                            <div class="bg-[#1a1e2e] border border-slate-700/80 rounded-md p-3 flex items-center justify-between cursor-pointer hover:border-amber-400 transition-colors group" onclick="openExtraInfoModal('power', 'พลังและความสามารถ')">
+                                <span class="text-slate-300 font-medium flex items-center gap-3">
+                                    <label class="cursor-pointer hover:scale-110 transition-transform" title="คลิกเพื่อเปลี่ยนไอคอน" onclick="event.stopPropagation()">
+                                        <span id="detail-view-icon2" class="flex items-center justify-center w-5 h-5"></span>
+                                        <input type="file" class="hidden" accept="image/*" onchange="handleStatIconUpload(this, 'icon2')">
+                                    </label>
+                                    <span id="detail-title-power">พลังและความสามารถ</span>
+                                </span>
+                                <span class="font-bold text-white bg-transparent text-right outline-none min-w-[100px]" id="detail-power" contenteditable="true" onblur="saveCharacterDetails()" onclick="event.stopPropagation()">-</span>
+                            </div>
+
+                            <div class="bg-[#1a1e2e] border border-slate-700/80 rounded-md p-3 flex items-center justify-between cursor-pointer hover:border-amber-400 transition-colors group" onclick="openExtraInfoModal('weapon', 'อาวุธ')">
+                                <span class="text-slate-300 font-medium flex items-center gap-3">
+                                    <label class="cursor-pointer hover:scale-110 transition-transform" title="คลิกเพื่อเปลี่ยนไอคอน" onclick="event.stopPropagation()">
+                                        <span id="detail-view-icon3" class="flex items-center justify-center w-5 h-5"></span>
+                                        <input type="file" class="hidden" accept="image/*" onchange="handleStatIconUpload(this, 'icon3')">
+                                    </label>
+                                    <span id="detail-title-weapon">อาวุธ</span>
+                                </span>
+                                <span class="font-bold text-white bg-transparent text-right outline-none min-w-[100px]" id="detail-weapon" contenteditable="true" onblur="saveCharacterDetails()" onclick="event.stopPropagation()">-</span>
+                            </div>
+                            
+                            <div class="bg-[#1a1e2e] border border-slate-700/80 rounded-md p-3 flex items-center justify-between cursor-pointer hover:border-amber-400 transition-colors group" onclick="openExtraInfoModal('origin', 'ที่มา')">
+                                <span class="text-slate-300 font-medium flex items-center gap-3">
+                                    <label class="cursor-pointer hover:scale-110 transition-transform" title="คลิกเพื่อเปลี่ยนไอคอน" onclick="event.stopPropagation()">
+                                        <span id="detail-view-icon4" class="flex items-center justify-center w-5 h-5"></span>
+                                        <input type="file" class="hidden" accept="image/*" onchange="handleStatIconUpload(this, 'icon4')">
+                                    </label>
+                                    <span id="detail-title-origin">ที่มา</span>
+                                </span>
+                                <span class="font-bold text-white bg-transparent text-right outline-none min-w-[100px]" id="detail-origin" contenteditable="true" onblur="saveCharacterDetails()" onclick="event.stopPropagation()">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                     <div class="bg-[#161a2b] rounded-xl p-6 border border-slate-700 shadow-lg">
+                         <div class="flex items-center gap-2 mb-4 border-l-4 border-indigo-500 pl-3">
+                            <h3 class="text-base md:text-lg font-bold text-white tracking-wider uppercase">ข้อมูลเพิ่มเติม</h3>
+                         </div>
+                         <div class="text-slate-400 leading-relaxed font-light outline-none p-3 hover:bg-slate-800/50 rounded transition-colors border border-transparent hover:border-slate-600 min-h-[100px]" id="detail-bio" contenteditable="true" onblur="saveCharacterDetails()">
+                             ยังไม่มีข้อมูลประวัติ...
+                         </div>
+                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 5. หน้าคลังไอเท็ม (ITEMS VIEW)               -->
+    <!-- ========================================== -->
+    <div id="view-items" class="hidden h-full w-full flex-row bg-[#0f1223] overflow-hidden z-40 relative">
+        <!-- Sidebar ด้านซ้ายของหน้าไอเท็ม -->
+        <div class="w-[260px] md:w-[300px] h-full bg-[#181d2c] border-r border-slate-700/50 flex flex-col shrink-0 shadow-[4px_0_15px_rgba(0,0,0,0.3)] z-10 relative">
+            <div class="p-6 pb-2 flex flex-col gap-5">
+                <div class="flex items-center gap-3">
+                    <button onclick="switchView('view-main-menu')" class="text-slate-400 hover:text-white transition-colors" title="กลับเมนูหลัก">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    </button>
+                    <h2 class="text-[22px] font-bold text-white tracking-wide">สารบัญ</h2>
+                </div>
+                <button onclick="addItemMainSidebarMenu()" class="w-full bg-transparent hover:bg-[#2a2d3e] text-slate-300 hover:text-white text-sm font-medium py-2.5 rounded border border-slate-600 transition-colors flex items-center justify-center gap-2">
+                    <span class="text-lg leading-none mb-0.5 font-light">+</span> เพิ่มหมวดหมู่หลัก
+                </button>
+            </div>
+            
+            <div class="border-b border-slate-700/50 mx-6 mb-3 mt-2"></div>
+            
+            <!-- คอนเทนเนอร์เก็บเมนูหมวดหมู่ของคลังไอเท็ม (เรนเดอร์ด้วย JS) -->
+            <div class="flex-1 overflow-y-auto px-4 space-y-1 z-10" id="items-sidebar-container"></div>
+            
+            <!-- ปุ่มเพิ่มไอเท็ม ไว้ด้านล่างสุด -->
+            <div class="p-6 border-t border-slate-700/50 bg-[#181d2c] shrink-0 mt-auto">
+                <label class="cursor-pointer w-full bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold py-3 rounded shadow-md transition-colors flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    เพิ่มไอเท็มใหม่
+                    <input type="file" class="hidden" accept="image/*" multiple onchange="handleFiles(this.files, { type: 'item' }); this.value = '';">
+                </label>
+            </div>
+        </div>
+
+        <!-- Content Area ด้านขวา แสดงตัวกรองและรายการไอเท็ม 2 คอลัมน์ -->
+        <div class="flex-1 h-full bg-[#0f1223] overflow-y-auto relative">
+            <div class="max-w-7xl mx-auto p-8 pt-10 relative">
+                <div class="flex flex-col w-full mb-6 max-w-5xl">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-slate-300 font-bold text-lg tracking-wide drop-shadow-md">ตัวกรอง</span>
+                        <button class="text-slate-400 hover:text-white transition-colors" title="ตัวกรอง">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                        </button>
+                    </div>
+                    <div class="w-full border-b-[1.5px] border-dashed border-slate-600/50"></div>
+                </div>
+
+                <div id="items-grid" class="grid grid-cols-1 lg:grid-cols-2 gap-4 max-w-5xl"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 6. หน้าจอรายละเอียดไอเท็ม (ITEM DETAIL)        -->
+    <!-- ========================================== -->
+    <div id="view-item-detail" class="hidden h-full w-full flex-col bg-[#0b0d17] overflow-y-auto z-50 relative">
+        <div class="w-full shrink-0 relative p-6 md:p-8">
+            <button onclick="switchView('view-items')" class="absolute top-6 right-6 text-slate-400 hover:text-white bg-[#181d2c] hover:bg-slate-700 p-2.5 rounded-full transition-colors border border-slate-700 shadow-md z-50" title="ปิดหน้าต่าง">
+                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <div class="text-[11px] md:text-xs text-slate-500 font-medium tracking-wider">
+                 หน้าหลัก / กระเป๋าไอเทม / <span class="text-slate-400" id="item-detail-breadcrumb">ชื่อไอเท็ม</span>
+            </div>
+        </div>
+
+        <div class="flex-1 w-full flex items-start md:items-center justify-center p-8 pb-20">
+            <div class="flex flex-col md:flex-row gap-8 md:gap-12 w-full max-w-4xl items-center md:items-start">
+                <div class="w-[200px] md:w-[260px] shrink-0">
+                    <div class="w-full aspect-square bg-[#4a4f6e] rounded-xl flex items-center justify-center p-4 relative group shadow-lg border border-[#5d6b96]/50">
+                        <img id="item-detail-img" src="" class="max-w-full max-h-full object-contain z-10 drop-shadow-xl rounded-lg" />
+                        <label class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-20 cursor-pointer rounded-xl backdrop-blur-sm">
+                            <span class="text-white text-sm font-medium bg-blue-600 px-4 py-2 rounded-full shadow-lg flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                เปลี่ยนรูป
+                            </span>
+                            <input type="file" class="hidden" accept="image/*" onchange="handleUpdateItemImage(this)">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="w-full flex-1 flex flex-col justify-center text-left pt-2 md:pt-4">
+                     <h2 class="text-3xl md:text-4xl font-black text-white tracking-wide outline-none hover:bg-slate-800/50 rounded transition-colors inline-block px-2 -ml-2 mb-2" id="item-detail-name" contenteditable="true" onblur="saveItemDetails()">ไอเท็มใหม่ (คลิกเพื่อแก้ไข)</h2>
+                     <div class="text-amber-400 text-xl md:text-2xl mb-4 outline-none hover:bg-slate-800/50 inline-block px-2 -ml-2 rounded w-max tracking-widest" id="item-detail-stars" contenteditable="true" onblur="saveItemDetails()">✦✦✦</div>
+                     <div class="flex items-center gap-2 mb-6">
+                         <span class="bg-[#1a1710] text-[#c1a062] px-3 py-1 rounded text-xs font-bold border border-[#3a301a] outline-none hover:bg-[#2a2618] transition-colors" id="item-detail-tag1" contenteditable="true" onblur="saveItemDetails()">3 ดาว</span>
+                         <span class="bg-[#1f2231] text-[#a4a9b6] px-3 py-1 rounded text-xs font-bold border border-[#3b3e51] outline-none hover:bg-[#2a2d3e] transition-colors" id="item-detail-tag2" contenteditable="true" onblur="saveItemDetails()">วัสดุใช้งาน</span>
+                     </div>
+                     <div class="text-slate-200 font-medium text-sm md:text-base leading-relaxed outline-none p-2 -ml-2 hover:bg-slate-800/50 rounded transition-colors min-h-[80px] max-w-2xl" id="item-detail-desc" contenteditable="true" onblur="saveItemDetails()">
+                         พิมพ์คำอธิบายไอเท็มที่นี่...
+                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 7. หน้าจออาวุธ และ แผนที่โลก (Placeholder)    -->
+    <!-- ========================================== -->
+    <div id="view-weapons" class="hidden h-full w-full flex-col items-center justify-center bg-[#111827] text-center p-6">
+        <h2 class="text-3xl font-bold mb-2 text-amber-400 drop-shadow-md">หน้าอาวุธ</h2>
+        <p class="text-slate-400 mb-8">ระบบกำลังอยู่ระหว่างการพัฒนา...</p>
+        <button onclick="switchView('view-main-menu')" class="bg-blue-600 px-8 py-3 rounded-lg font-bold hover:bg-blue-500 transition-colors shadow-lg">กลับเมนูหลัก</button>
+    </div>
+
+    <div id="view-map" class="hidden h-full w-full flex-col items-center justify-center bg-[#111827] text-center p-6">
+        <h2 class="text-3xl font-bold mb-2 text-amber-400 drop-shadow-md">หน้าแผนที่โลก</h2>
+        <p class="text-slate-400 mb-8">ระบบกำลังอยู่ระหว่างการพัฒนา...</p>
+        <button onclick="switchView('view-main-menu')" class="bg-blue-600 px-8 py-3 rounded-lg font-bold hover:bg-blue-500 transition-colors shadow-lg">กลับเมนูหลัก</button>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- Modals และ UI แจ้งเตือน                      -->
+    <!-- ========================================== -->
+
+    <!-- Modal ดูรายละเอียดเทียร์ -->
+    <div id="tier-view-modal" class="fixed inset-0 bg-slate-900/80 items-center justify-center z-[200] backdrop-blur-sm hidden">
+        <div class="bg-[#151722] rounded-lg shadow-2xl w-full max-w-md border border-slate-700 overflow-hidden transform transition-transform duration-200">
+            <div class="p-4 border-b border-slate-700 flex justify-between items-center relative">
+                <h3 class="text-white font-bold text-lg text-center w-full absolute left-0 pointer-events-none" id="view-tier-name">ชื่อระดับ</h3>
+                <div class="flex-1"></div>
+                <div class="flex items-center gap-2 z-10">
+                    <button id="btn-edit-tier" class="text-slate-400 hover:text-amber-400 transition-colors p-1" title="แก้ไขข้อมูลระดับนี้">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    </button>
+                    <button onclick="closeTierViewModal()" class="text-slate-400 hover:text-white transition-colors p-1">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="p-8 pb-10 text-center flex flex-col items-center">
+                <p class="text-sm text-slate-300 leading-relaxed mb-8" id="view-tier-desc">คำอธิบาย</p>
+                <button onclick="closeTierViewModal()" class="bg-green-500 hover:bg-green-400 text-white font-bold py-2.5 px-12 rounded-full transition-colors shadow-lg">
+                    ตกลง
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal แก้ไขรายละเอียดเทียร์ -->
+    <div id="tier-edit-modal" class="fixed inset-0 bg-slate-900/80 items-center justify-center z-[210] backdrop-blur-sm hidden">
+        <div class="bg-slate-800 rounded-lg shadow-2xl w-full max-w-md border border-slate-600 overflow-hidden">
+            <div class="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-900/50">
+                <h3 class="text-white font-bold text-lg">แก้ไขข้อมูลระดับพลัง</h3>
+                <button onclick="closeTierEditModal()" class="text-slate-400 hover:text-white transition-colors p-1">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="p-6 space-y-4">
+                <input type="hidden" id="edit-tier-id">
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">ชื่อระดับ (เช่น ระดับทำลายกำแพง)</label>
+                    <input type="text" id="edit-tier-name" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white outline-none focus:border-amber-400 transition-colors">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">คำอธิบายโดยละเอียด</label>
+                    <textarea id="edit-tier-desc" rows="4" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white outline-none focus:border-amber-400 transition-colors resize-none"></textarea>
+                </div>
+            </div>
+            <div class="p-4 border-t border-slate-700 bg-slate-900/50 flex justify-end gap-3">
+                <button onclick="closeTierEditModal()" class="px-4 py-2 text-slate-400 hover:text-white transition-colors">ยกเลิก</button>
+                <button onclick="saveTierEdit()" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold rounded transition-colors shadow-md">บันทึกข้อมูล</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal ตัวเลือกจัดการเมนู (Settings) -->
+    <div id="menu-action-modal" class="fixed inset-0 bg-slate-900/80 items-center justify-center z-[200] backdrop-blur-sm hidden">
+        <div class="bg-[#181d2c] rounded-xl shadow-2xl w-full max-w-sm border border-slate-600 overflow-hidden transform scale-95 transition-transform duration-200" id="menu-modal-box">
+            <div class="p-5 border-b border-slate-700/50 text-center">
+                <h3 class="text-white font-black text-lg tracking-wide" id="modal-menu-title">ตั้งค่าหมวดหมู่หลัก</h3>
+            </div>
+            <div class="flex flex-col p-2">
+                <button onclick="handleEditMenuName()" class="w-full text-left px-4 py-3.5 text-slate-200 hover:bg-[#2a2d3e] hover:text-white rounded-lg transition-colors flex items-center gap-4 font-bold text-sm mb-1">
+                    <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                    แก้ไขข้อความ (ชื่อเมนู)
+                </button>
+                <button id="btn-add-submenu" onclick="handleAddSubMenu()" class="w-full text-left px-4 py-3.5 text-slate-200 hover:bg-[#2a2d3e] hover:text-white rounded-lg transition-colors flex items-center gap-4 font-bold text-sm mb-1">
+                    <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    เพิ่มข้อความ (เมนูย่อย)
+                </button>
+                <button onclick="handleDeleteMenu()" class="w-full text-left px-4 py-3.5 text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 rounded-lg transition-colors flex items-center gap-4 font-bold text-sm">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    ลบเมนูนี้ทิ้ง
+                </button>
+            </div>
+            <div class="p-3 border-t border-slate-700/50 bg-[#141824]">
+                <button onclick="closeMenuSettings()" class="w-full py-2.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg text-sm font-bold transition-colors">ยกเลิก</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal ตัดรูป -->
+    <div id="crop-modal" class="fixed inset-0 bg-slate-900/95 hidden items-center justify-center z-[100] p-4 backdrop-blur-sm">
+        <div class="bg-slate-800 rounded-lg shadow-2xl max-w-xl w-full flex flex-col border-2 border-slate-600 overflow-hidden">
+            <div class="p-4 border-b border-slate-700 bg-slate-800">
+                <h3 class="text-white font-bold text-xl tracking-wide">ตัดรูปภาพ (อัตราส่วน 1:1)</h3>
+                <p class="text-sm text-slate-400 mt-1 font-light">เลื่อนและซูมรูปภาพให้อยู่ในกรอบเพื่อความสวยงาม</p>
+            </div>
+            <div class="p-4 bg-black/60">
+                <div class="w-full h-[300px] md:h-[400px] relative flex justify-center items-center">
+                    <img id="crop-image-target" class="max-h-full max-w-full block" src="" alt="To Crop">
+                </div>
+            </div>
+            <div class="p-4 border-t border-slate-700 bg-slate-800 flex justify-end gap-3">
+                <button id="btn-cancel-crop" class="px-5 py-2.5 bg-slate-600 hover:bg-slate-500 rounded text-white font-medium text-sm transition-colors">ข้ามรูปนี้</button>
+                <button id="btn-save-crop" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 rounded text-white font-bold text-sm transition-colors flex items-center gap-2 shadow-lg">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>ยืนยัน
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal ตั้งค่าพื้นหลัง -->
+    <div id="bg-modal" class="fixed inset-0 bg-slate-900/95 hidden items-center justify-center z-[100] p-4 backdrop-blur-sm">
+        <div class="bg-slate-800 rounded-lg shadow-2xl max-w-md w-full flex flex-col border-2 border-slate-600 overflow-hidden max-h-[90vh]">
+            <div class="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-800 shrink-0">
+                <h3 class="text-white font-bold text-xl tracking-wide">ตั้งค่าฉากหลัง & สติกเกอร์</h3>
+                <button id="btn-close-bg" class="text-slate-400 hover:text-white transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="p-6 flex flex-col gap-6 bg-slate-800/50 overflow-y-auto">
+                <div class="border border-slate-700 bg-slate-900/50 p-4 rounded">
+                    <label class="block text-sm font-semibold text-slate-300 mb-2">เปลี่ยนรูปไอคอนสเตตัส</label>
+                    <p class="text-[11px] text-slate-400 mb-3 leading-tight">เลือกรูปที่จะใช้แทนไอคอนเริ่มต้น (แนะนำรูป PNG พื้นหลังใส)</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div class="flex items-center gap-3 bg-slate-800 p-2 rounded border border-slate-700">
+                            <div id="preview-icon1" class="w-5 h-5 flex items-center justify-center shrink-0"></div>
+                            <input type="file" accept="image/*" onchange="handleStatIconUpload(this, 'icon1')" class="block w-full text-[10px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:font-bold file:bg-slate-700 file:text-white hover:file:bg-slate-600 cursor-pointer">
+                        </div>
+                        <div class="flex items-center gap-3 bg-slate-800 p-2 rounded border border-slate-700">
+                            <div id="preview-icon2" class="w-5 h-5 flex items-center justify-center shrink-0"></div>
+                            <input type="file" accept="image/*" onchange="handleStatIconUpload(this, 'icon2')" class="block w-full text-[10px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:font-bold file:bg-slate-700 file:text-white hover:file:bg-slate-600 cursor-pointer">
+                        </div>
+                        <div class="flex items-center gap-3 bg-slate-800 p-2 rounded border border-slate-700">
+                            <div id="preview-icon3" class="w-5 h-5 flex items-center justify-center shrink-0"></div>
+                            <input type="file" accept="image/*" onchange="handleStatIconUpload(this, 'icon3')" class="block w-full text-[10px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:font-bold file:bg-slate-700 file:text-white hover:file:bg-slate-600 cursor-pointer">
+                        </div>
+                        <div class="flex items-center gap-3 bg-slate-800 p-2 rounded border border-slate-700">
+                            <div id="preview-icon4" class="w-5 h-5 flex items-center justify-center shrink-0"></div>
+                            <input type="file" accept="image/*" onchange="handleStatIconUpload(this, 'icon4')" class="block w-full text-[10px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:font-bold file:bg-slate-700 file:text-white hover:file:bg-slate-600 cursor-pointer">
+                        </div>
+                    </div>
+                </div>
+                <div class="border border-yellow-600/50 bg-yellow-900/20 p-4 rounded mt-4">
+                    <label class="block text-sm font-semibold text-yellow-500 mb-2">อัปโหลดรูปสติกเกอร์ (Badge)</label>
+                    <p class="text-[11px] text-slate-400 mb-3 leading-tight">สติกเกอร์จะนำไปแปะที่มุมรูปตัวละคร รองรับไฟล์ PNG โปร่งใส</p>
+                    <div class="flex items-center gap-4">
+                        <img id="preview-badge" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZiYmYyNCIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjEuNSI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiPjwvY2lyY2xlPjxwYXRoIGQ9Ik05LjA5IDlhMyAzIDAgMCAxIDUuODMgMWMwIDItMyAzLTMgMyI+PC9wYXRoPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTciIHI9IjEiPjwvY2lyY2xlPjwvc3ZnPg==" class="w-12 h-12 object-contain bg-black/50 border border-slate-600 rounded p-1" style="display: block;">
+                        <input type="file" id="bg-badge-upload" accept="image/*" class="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-bold file:bg-yellow-600 file:text-white hover:file:bg-yellow-500 cursor-pointer bg-slate-900 rounded border border-slate-700 shadow-inner">
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 border-t border-slate-700 flex justify-between gap-3 bg-slate-800 shrink-0">
+                <button id="btn-clear-bg" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 rounded text-white font-medium text-sm transition-colors shadow-md">ล้างค่าทั้งหมด</button>
+                <button id="btn-apply-bg" class="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 rounded text-white font-bold text-sm transition-colors shadow-md">ตกลง</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal ส่งออกรูปภาพ -->
+    <div id="export-modal" class="fixed inset-0 bg-slate-900/95 items-center justify-center z-[100] p-4 backdrop-blur-sm hidden">
+        <div class="bg-slate-800 rounded-lg shadow-2xl max-w-sm w-full flex flex-col border-2 border-slate-600 overflow-hidden">
+            <div class="p-4 border-b border-slate-700 bg-slate-800">
+                <h3 class="text-white font-bold text-xl tracking-wide">เลือกระดับความคมชัด</h3>
+                <p class="text-sm text-slate-400 mt-1 font-light">ความละเอียดสูงจะมีความคมชัดมาก แต่ใช้เวลาประมวลผลนานขึ้น</p>
+            </div>
+            <div class="p-5 flex flex-col gap-3 bg-slate-800/50">
+                <button class="export-res-btn bg-slate-600 hover:bg-slate-500 text-white font-medium py-3 rounded transition-colors shadow-md text-sm flex items-center justify-center gap-2" data-scale="1">มาตรฐาน (1x)</button>
+                <button class="export-res-btn bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 rounded transition-colors shadow-md text-sm flex items-center justify-center gap-2" data-scale="2">คมชัด 2K (2x)</button>
+                <button class="export-res-btn bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded transition-colors shadow-md text-sm flex items-center justify-center gap-2" data-scale="4">คมชัดสูงสุด 4K (4x)</button>
+            </div>
+            <div class="p-3 border-t border-slate-700 flex justify-end bg-slate-800">
+                <button id="btn-cancel-export" class="px-4 py-2 text-slate-400 hover:text-white transition-colors text-sm">ยกเลิก</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- แจ้งเตือน Popup (Toast) -->
+    <div id="message-box" class="fixed top-5 left-1/2 transform -translate-x-1/2 bg-slate-800 border-2 border-emerald-500/50 text-white px-6 py-3 rounded shadow-2xl z-[150] transition-all duration-300 flex items-center gap-3 pointer-events-none" style="opacity: 0; transform: translate(-50%, -20px);">
+        <span id="message-icon"><svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></span>
+        <span id="message-text" class="font-medium text-sm">บันทึกรูปภาพเรียบร้อย!</span>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- JavaScript Section                          -->
+    <!-- ========================================== -->
+    <script>
+        // ----------------------------------------------------
+        // 1. ระบบจัดการสลับหน้าเมนูหลัก และหน้าย่อย
+        // ----------------------------------------------------
+        function switchView(targetViewId) {
+            const views = ['view-main-menu', 'view-tierlist', 'view-characters', 'view-character-detail', 'view-weapons', 'view-items', 'view-map', 'view-item-detail'];
+            
+            views.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                
+                if (id === targetViewId) {
+                    el.classList.remove('hidden');
+                    if (id === 'view-tierlist') {
+                        el.classList.add('flex', 'flex-col', 'md:flex-row');
+                    } else if (id === 'view-main-menu' || id === 'view-character-detail' || id === 'view-item-detail') {
+                        el.classList.add('flex', 'flex-col');
+                    } else if (id === 'view-characters' || id === 'view-items') {
+                        el.classList.add('flex', 'flex-row');
+                    } else {
+                        el.classList.add('flex');
+                    }
+                } else {
+                    el.classList.add('hidden');
+                    el.classList.remove('flex', 'flex-col', 'md:flex-row', 'flex-row');
+                }
+            });
+
+            if(targetViewId === 'view-characters') {
+                renderSidebar();
+                renderCharacterGrid();
+            } else if (targetViewId === 'view-items') {
+                renderItemsSidebar();
+                renderItemsGrid();
+            }
+        }
+
+        function closeExtraInfoDropdown(e) {
+            const dropdown = document.getElementById('extra-info-dropdown');
+            if (dropdown && !dropdown.classList.contains('hidden') && !e.target.closest('#extra-info-dropdown') && !e.target.closest('button[onclick="toggleExtraInfoDropdown(event)"]')) {
+                dropdown.classList.add('hidden');
+            }
+        }
+
+        function handleMenuImageUpload(input, imgId, placeholderId) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById(imgId);
+                    img.src = e.target.result;
+                    img.classList.remove('hidden');
+                    
+                    if (placeholderId) {
+                        const placeholder = document.getElementById(placeholderId);
+                        if (placeholder) placeholder.classList.add('hidden');
+                    }
+                    
+                    if (!window.menuImagesState) window.menuImagesState = {};
+                    window.menuImagesState[imgId] = e.target.result;
+                    triggerAutoSave();
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+            input.value = '';
+        }
+
+        // ----------------------------------------------------
+        // ข้อมูลตั้งต้นไอคอน
+        // ----------------------------------------------------
+        const defaultIcons = {
+            icon1: `<svg class="w-4 h-4 text-pink-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg>`,
+            icon2: `<svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>`,
+            icon3: `<svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>`,
+            icon4: `<svg class="w-4 h-4 text-purple-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0l2.6 7.4L22 10l-7.4 2.6L12 20l-2.6-7.4L2 10l7.4-2.6z"/></svg>`
+        };
+
+        function getIconHTML(iconKey, extraClass = "") {
+            if (bgSettings && bgSettings[iconKey]) {
+                return `<img src="${bgSettings[iconKey]}" class="w-4 h-4 object-contain ${extraClass}">`;
+            }
+            return `<span class="flex items-center justify-center w-4 h-4 ${extraClass}">${defaultIcons[iconKey]}</span>`;
+        }
+
+        // ----------------------------------------------------
+        // 2. ข้อมูลหลัก (Data State)
+        // ----------------------------------------------------
+        let tierData = [
+             { group: "T10 : ฮิวแมน (มนุษย์)", color: "#000000", text: "#ffffff", tiers: [{ id: "10-C", name: "ระดับต่ำกว่าคนทั่วไป", desc: "อ่อนแอกว่ามนุษย์ทั่วไปอย่างเห็นได้ชัด" }, { id: "10-B", name: "ระดับคนทั่วไป", desc: "ระดับความแข็งแกร่งของมนุษย์ปกติที่ไม่มีการฝึกฝน" }, { id: "10-A", name: "ระดับนักกีฬา", desc: "ผู้ที่มีความแข็งแรงระดับนักกีฬาหรือผู้ที่ฝึกฝนศิลปะการต่อสู้" }] },
+             { group: "T9 : ซูเปอร์ฮิวแมน (ยอดมนุษย์)", color: "#000000", text: "#ffffff", tiers: [{ id: "9-C", name: "ระดับนักสู้ข้างถนน", desc: "สามารถจัดการกับคนปกติหลายๆ คนพร้อมกันได้อย่างง่ายดาย" }, { id: "9-B", name: "ระดับทำลายกำแพง", desc: "สามารถทำลายกำแพงคอนกรีตหนาๆ หรือสิ่งปลูกสร้างขนาดเล็กได้" }, { id: "9-A", name: "ระดับทำลายตึกขนาดเล็ก", desc: "สามารถทำลายห้องหรือสิ่งปลูกสร้างขนาดเล็กได้อย่างสมบูรณ์" }] },
+             { group: "T8 : เออร์เบิน (ระดับอาคาร)", color: "#000000", text: "#ffffff", tiers: [{ id: "8-C", name: "ระดับทำลายตึก", desc: "สามารถทำลายตึกขนาดใหญ่หรืออาคารพาณิชย์ได้" }, { id: "8-B", name: "ระดับทำลายช่วงตึก (บล็อกตึก)", desc: "สามารถทำลายบล็อกของเมืองหรือช่วงตึกหลายๆ ช่วงได้" }, { id: "8-A", name: "ระดับทำลายหลายช่วงตึก", desc: "สามารถทำลายพื้นที่เขตเมืองขนาดใหญ่หรือหลายๆ บล็อกตึกพร้อมกัน" }] },
+             { group: "T7 : นิวเคลียร์", color: "#000000", text: "#ffffff", tiers: [{ id: "7-C", name: "ระดับทำลายเมืองเล็ก", desc: "มีพลังทำลายเทียบเท่ากับระเบิดนิวเคลียร์ขนาดเล็ก ทำลายเมืองเล็กๆ ได้" }, { id: "7-B", name: "ระดับทำลายเมืองใหญ่", desc: "สามารถลบเมืองขนาดใหญ่ออกจากแผนที่ได้ในการโจมตีเดียว" }, { id: "7-A", name: "ระดับทำลายภูเขา", desc: "สามารถทำลายภูเขาขนาดใหญ่ให้ราบเป็นหน้ากลองได้" }] },
+             { group: "T6 : เทคโทนิก (ระดับแผ่นเปลือกโลก)", color: "#000000", text: "#ffffff", tiers: [{ id: "6-C", name: "ระดับทำลายเกาะ", desc: "สามารถทำลายเกาะขนาดใหญ่ที่มีประชากรอาศัยอยู่ได้" }, { id: "6-B", name: "ระดับทำลายประเทศ", desc: "พลังทำลายระดับที่สามารถทำลายประเทศขนาดเล็กถึงขนาดกลางได้" }, { id: "6-A", name: "ระดับทำลายทวีป", desc: "สามารถทำลายทวีปขนาดใหญ่หรือก่อให้เกิดการเปลี่ยนแปลงพื้นผิวโลกได้" }] },
+             { group: "T5 : ซับสเตลลาร์ (ระดับวัตถุมวลต่ำกว่าดาวฤกษ์)", color: "#000000", text: "#ffffff", tiers: [{ id: "5-C", name: "ระดับทำลายดวงจันทร์", desc: "สามารถทำลายดวงจันทร์ หรือวัตถุที่มีมวลใกล้เคียงกันได้" }, { id: "5-B", name: "ระดับทำลายดาวเคราะห์", desc: "สามารถทำลายดาวเคราะห์ขนาดเท่าโลกได้อย่างสมบูรณ์" }, { id: "5-A", name: "ระดับทำลายดาวเคราะห์ขนาดใหญ่", desc: "สามารถทำลายดาวเคราะห์ขนาดใหญ่มาก (เช่น ดาวพฤหัสบดี) ได้" }] },
+             { group: "T4 : สเตลลาร์ (ระดับดารา)", color: "#000000", text: "#ffffff", tiers: [{ id: "4-C", name: "ระดับทำลายดาวฤกษ์", desc: "สามารถทำลายดาวฤกษ์ (เช่น ดวงอาทิตย์) ได้" }, { id: "4-B", name: "ระดับทำลายระบบสุริยะ", desc: "สามารถทำลายระบบสุริยะทั้งหมดได้ในการโจมตีเดียว" }, { id: "4-A", name: "ระดับทำลายหลายระบบสุริยะ", desc: "สามารถทำลายระบบสุริยะหลายๆ ระบบที่อยู่ใกล้เคียงกันได้" }] },
+             { group: "T3 : คอสมิก (ระดับจักรวาล)", color: "#000000", text: "#ffffff", tiers: [{ id: "3-C", name: "ระดับทำลายกาแล็กซี", desc: "สามารถทำลายกาแล็กซีทั้งกาแล็กซีได้" }, { id: "3-B", name: "ระดับทำลายหลายกาแล็กซี", desc: "สามารถทำลายกลุ่มกาแล็กซีหลายๆ แห่งพร้อมกันได้" }, { id: "3-A", name: "ระดับทำลายเอกภพ (ครึ่งเทพ)", desc: "สามารถทำลายเอกภพ หรือมิติที่มีขนาดเทียบเท่าเอกภพได้" }] },
+             { group: "T2 : มัลติเวิร์สซัล (ระดับพหุจักรวาล)", color: "#000000", text: "#ffffff", tiers: [{ id: "2-C", name: "พหุจักรวาลระดับล่าง", desc: "สามารถทำลายหรือสร้างจักรวาลได้จำนวนจำกัด (2 ถึง 1000 จักรวาล)" }, { id: "2-B", name: "ระดับพหุจักรวาล", desc: "สามารถทำลายพหุจักรวาลที่มีจำนวนอนันต์ได้" }, { id: "2-A", name: "ระดับพหุจักรวาล+ (เทพแท้จริง)", desc: "เหนือกว่าพหุจักรวาลอนันต์ มีพลังระดับมิติที่สูงกว่าอย่างชัดเจน" }] },
+             { group: "T1 : ไฮเออร์อินฟินิตี้ (ระดับมิติสูงที่ซับซ้อนขึ้น)", color: "#000000", text: "#ffffff", tiers: [{ id: "1-C", name: "ระดับพหุจักรวาลซับซ้อน", desc: "มีตัวตนและพลังในมิติที่ซับซ้อนระดับสูง (7D - 11D)" }, { id: "1-B", name: "ระดับไฮเปอร์เวิร์ส", desc: "มีตัวตนในมิติที่สูงขึ้นไปอีกอย่างไร้ขีดจำกัด (12D ขึ้นไป)" }, { id: "1-A", name: "ระดับเอาเตอร์เวิร์ส (พระเจ้า)", desc: "อยู่เหนือกรอบของมิติ เวลา และอวกาศทั้งหมดอย่างสิ้นเชิง" }] },
+             { group: "T0 : บาวด์เลส (ระดับไร้ขอบเขต)", color: "#000000", text: "#ffffff", tiers: [{ id: "0", name: "อนันต์สมบูรณ์ (อยู่เหนือทุกสิ่ง / บัลลังก์)", desc: "ทรงพลังที่สุด ไร้ซึ่งขีดจำกัดใดๆ ครอบคลุมทุกสิ่งและเหนือกว่าทุกแนวคิด" }] }
+        ];
+
+        function getTierById(id) {
+            for(let group of tierData) {
+                for(let tier of group.tiers) {
+                    if(tier.id === id) return tier;
+                }
+            }
+            return null;
+        }
+
+        const DEFAULT_BADGE_SVG = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZiYmYyNCIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjEuNSI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiPjwvY2lyY2xlPjxwYXRoIGQ9Ik05LjA5IDlhMyAzIDAgMCAxIDUuODMgMWMwIDItMyAzLTMgMyI+PC9wYXRoPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTciIHI9IjEiPjwvY2lyY2xlPjwvc3ZnPg==";
+
+        let draggedItem = null;
+        let cropper = null;
+        let fileQueue = [];
+        let isCropping = false;
+        let uploadTargetContext = null; 
+        const SAVE_KEY = 'omniversal_tier_save';
+
+        let bgSettings = { pc: null, mobile: null, blur: 0, opacity: 50, badgeImage: null, icon1: null, icon2: null, icon3: null, icon4: null };
+        
+        let wikiDatabase = {}; 
+        let itemsDatabase = {}; 
+        
+        let sidebarData = [
+            { id: 'menu_1', title: 'โลกทัศน์', isOpen: false, subItems: [] },
+            { id: 'menu_2', title: 'ภาพตัวละคร', isOpen: true, subItems: [{ id: 'sub_1', title: 'ตัวละคร' }, { id: 'sub_2', title: 'NPC' }] }
+        ];
+        let currentActiveSubId = 'sub_1'; 
+        
+        let itemsSidebarData = [
+            { id: 'item_menu_1', title: 'ภาพไอเทม', isOpen: true, subItems: [{ id: 'item_sub_1', title: 'กระเป๋าไอเทม' }] }
+        ];
+        let currentActiveItemSubId = 'item_sub_1';
+
+        let currentDetailId = null;
+        let currentExtraInfoStat = null; 
+        
+        let editingMenuId = null;
+        let editingIsSub = false;
+        let editingParentId = null;
+
+        // ----------------------------------------------------
+        // 3. UI ตารางและการแจ้งเตือน (Tierlist)
+        // ----------------------------------------------------
+        function initTierList() {
+            const container = document.getElementById('table-wrapper');
+            container.innerHTML = '';
+            const table = document.createElement('table');
+            table.className = 'w-full border-collapse border-[3px] border-[#334155] bg-transparent';
+
+            tierData.forEach(groupInfo => {
+                groupInfo.tiers.forEach((tier, index) => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'border-b-[2px] border-[#334155]';
+
+                    if (index === 0) {
+                        const tdGroup = document.createElement('td');
+                        tdGroup.rowSpan = groupInfo.tiers.length;
+                        tdGroup.className = 'border-r-[2px] border-[#334155] p-2 text-center font-bold text-[12px] md:text-sm w-[120px] md:w-[150px] leading-tight align-middle tracking-wide bg-black text-white';
+                        tdGroup.innerText = groupInfo.group;
+                        tr.appendChild(tdGroup);
+                    }
+
+                    const tdId = document.createElement('td');
+                    tdId.className = 'border-r-[2px] border-[#334155] p-2 text-center font-black text-2xl md:text-3xl w-[70px] md:w-[100px] align-middle tracking-tighter';
+                    tdId.style.backgroundColor = groupInfo.color;
+                    tdId.style.color = groupInfo.text;
+                    tdId.innerText = tier.id;
+                    tr.appendChild(tdId);
+
+                    const tdName = document.createElement('td');
+                    tdName.className = 'border-r-[2px] border-[#334155] p-2 text-center font-semibold text-[11px] md:text-sm w-[140px] md:w-[220px] leading-tight align-middle tracking-wide';
+                    tdName.style.backgroundColor = groupInfo.color;
+                    
+                    const nameContainer = document.createElement('div');
+                    nameContainer.className = 'inline-block cursor-pointer group relative text-center w-full';
+                    nameContainer.innerHTML = `
+                        <span class="text-blue-400 border-b border-blue-400/50 pb-[1px] hover:text-blue-300 hover:border-blue-300 transition-colors"
+                              onmouseenter="showTierTooltip(event, '${tier.id}')"
+                              onmousemove="moveTierTooltip(event)"
+                              onmouseleave="hideTierTooltip()"
+                              onclick="openTierViewModal('${tier.id}')">
+                            ${tier.name}
+                        </span>
+                    `;
+                    tdName.appendChild(nameContainer);
+                    tr.appendChild(tdName);
+
+                    const tdDrop = document.createElement('td');
+                    tdDrop.className = 'tier-dropzone bg-black/60 p-1.5 align-top transition-colors duration-200 backdrop-blur-sm';
+                    tdDrop.dataset.tier = tier.id;
+                    
+                    const dropInner = document.createElement('div');
+                    dropInner.className = 'dropzone-inner flex flex-wrap gap-1.5 min-h-[68px] items-start content-start w-full h-full';
+                    tdDrop.appendChild(dropInner);
+
+                    tr.appendChild(tdDrop);
+                    table.appendChild(tr);
+                });
+            });
+
+            container.appendChild(table);
+            setupDragAndDrop();
+        }
+
+        function showTierTooltip(e, id) {
+            const tier = getTierById(id);
+            if(!tier) return;
+            const tooltip = document.getElementById('tier-tooltip');
+            document.getElementById('tt-id').innerText = tier.id;
+            document.getElementById('tt-name').innerText = tier.name;
+            document.getElementById('tt-desc').innerText = tier.desc || "ยังไม่มีคำอธิบายเพิ่มเติม";
+            tooltip.classList.add('show');
+            moveTierTooltip(e);
+        }
+        function moveTierTooltip(e) {
+            const tooltip = document.getElementById('tier-tooltip');
+            let left = e.clientX + 15;
+            let top = e.clientY + 15;
+            if(left + 320 > window.innerWidth) left = e.clientX - 335;
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
+        }
+        function hideTierTooltip() {
+            document.getElementById('tier-tooltip').classList.remove('show');
+        }
+
+        function openTierViewModal(id) {
+            hideTierTooltip();
+            const tier = getTierById(id);
+            if(!tier) return;
+            document.getElementById('view-tier-name').innerText = tier.name;
+            document.getElementById('view-tier-desc').innerText = tier.desc || "ยังไม่มีคำอธิบายเพิ่มเติม";
+            document.getElementById('btn-edit-tier').onclick = () => openTierEditModal(id);
+            document.getElementById('tier-view-modal').classList.remove('hidden');
+            document.getElementById('tier-view-modal').classList.add('flex');
+        }
+        function closeTierViewModal() {
+            document.getElementById('tier-view-modal').classList.add('hidden');
+            document.getElementById('tier-view-modal').classList.remove('flex');
+        }
+
+        function openTierEditModal(id) {
+            closeTierViewModal();
+            const tier = getTierById(id);
+            if(!tier) return;
+            document.getElementById('edit-tier-id').value = id;
+            document.getElementById('edit-tier-name').value = tier.name;
+            document.getElementById('edit-tier-desc').value = tier.desc || "";
+            document.getElementById('tier-edit-modal').classList.remove('hidden');
+            document.getElementById('tier-edit-modal').classList.add('flex');
+        }
+        function closeTierEditModal() {
+            document.getElementById('tier-edit-modal').classList.add('hidden');
+            document.getElementById('tier-edit-modal').classList.remove('flex');
+        }
+        function saveTierEdit() {
+            const id = document.getElementById('edit-tier-id').value;
+            const newName = document.getElementById('edit-tier-name').value;
+            const newDesc = document.getElementById('edit-tier-desc').value;
+            const tier = getTierById(id);
+            if(tier) {
+                tier.name = newName;
+                tier.desc = newDesc;
+                triggerAutoSave();
+                initTierList(); 
+            }
+            closeTierEditModal();
+            openTierViewModal(id); 
+            showMessage("บันทึกข้อมูลระดับแล้ว!", "success");
+        }
+
+        function showMessage(msg, type = "info") {
+            const box = document.getElementById('message-box');
+            const icon = document.getElementById('message-icon');
+            const text = document.getElementById('message-text');
+
+            text.innerText = msg;
+            if (type === "success") {
+                icon.innerHTML = '<svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+                box.className = 'fixed top-5 left-1/2 transform -translate-x-1/2 bg-slate-800 border-2 border-emerald-500/50 text-white px-6 py-3 rounded shadow-2xl z-[150] transition-all duration-300 flex items-center gap-3 pointer-events-none';
+            } else if (type === "error") {
+                icon.innerHTML = '<svg class="w-5 h-5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+                box.className = 'fixed top-5 left-1/2 transform -translate-x-1/2 bg-slate-800 border-2 border-rose-500/50 text-white px-6 py-3 rounded shadow-2xl z-[150] transition-all duration-300 flex items-center gap-3 pointer-events-none';
+            } else {
+                icon.innerHTML = '<svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+                box.className = 'fixed top-5 left-1/2 transform -translate-x-1/2 bg-slate-800 border-2 border-blue-500/50 text-white px-6 py-3 rounded shadow-2xl z-[150] transition-all duration-300 flex items-center gap-3 pointer-events-none';
+            }
+
+            box.style.opacity = '1';
+            box.style.transform = 'translate(-50%, 0)';
+
+            setTimeout(() => {
+                box.style.opacity = '0';
+                box.style.transform = 'translate(-50%, -20px)';
+            }, 3000);
+        }
+
+        function updateSaveStatus(text, isError = false) {
+            const el = document.getElementById('save-text');
+            if(el) {
+                el.innerText = text;
+                el.className = isError ? "text-rose-400 font-medium" : "text-emerald-400 font-medium";
+            }
+        }
+
+        // ----------------------------------------------------
+        // 4. การจัดการตัวละคร และ Drag & Drop
+        // ----------------------------------------------------
+        function createCharacter(src, specificId = null, hasBadge = false) {
+            const id = specificId || ('char_' + Date.now() + '_' + Math.floor(Math.random() * 1000));
+            const div = document.createElement('div');
+            div.className = 'character-item relative group cursor-grab w-[64px] h-[64px] md:w-[72px] md:h-[72px] shrink-0 transform transition-transform hover:scale-105 bg-black border border-gray-600 shadow-md';
+            div.draggable = true;
+            div.id = id;
+            div.dataset.hasBadge = hasBadge ? "true" : "false";
+
+            const img = document.createElement('img');
+            img.src = src;
+            img.className = 'w-full h-full object-cover pointer-events-none';
+
+            const badgeImg = document.createElement('img');
+            badgeImg.className = `unknown-badge ${hasBadge ? '' : 'hidden'}`;
+            badgeImg.src = bgSettings.badgeImage || DEFAULT_BADGE_SVG;
+
+            const toggleBadgeBtn = document.createElement('button');
+            toggleBadgeBtn.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>';
+            toggleBadgeBtn.className = 'toggle-badge-btn absolute -bottom-2 -right-2 bg-yellow-500 text-black w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg z-10 hover:bg-yellow-400 rounded-full border border-black';
+            toggleBadgeBtn.title = "เปิด/ปิด ป้ายสถานะ";
+            
+            toggleBadgeBtn.onclick = (e) => {
+                e.stopPropagation();
+                const isCurrentlyOn = div.dataset.hasBadge === "true";
+                div.dataset.hasBadge = isCurrentlyOn ? "false" : "true";
+                if (div.dataset.hasBadge === "true") { badgeImg.classList.remove('hidden'); } 
+                else { badgeImg.classList.add('hidden'); }
+                triggerAutoSave();
+            };
+
+            const delBtn = document.createElement('button');
+            delBtn.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>';
+            delBtn.className = 'delete-btn absolute -top-2 -right-2 bg-rose-600 text-white w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg z-10 hover:bg-rose-500 rounded-full border border-black';
+            delBtn.onclick = (e) => {
+                e.stopPropagation();
+                div.remove();
+                updateCharCount();
+                triggerAutoSave();
+            };
+
+            div.addEventListener('dragstart', (e) => {
+                draggedItem = div;
+                e.dataTransfer.setData('text/plain', div.id);
+                e.dataTransfer.effectAllowed = 'move';
+                setTimeout(() => div.classList.add('is-dragging'), 0);
+            });
+
+            div.addEventListener('dragend', () => {
+                draggedItem = null;
+                div.classList.remove('is-dragging');
+            });
+
+            div.appendChild(img);
+            div.appendChild(badgeImg);
+            div.appendChild(toggleBadgeBtn);
+            div.appendChild(delBtn);
+            return div;
+        }
+
+        function setupDragAndDrop() {
+            const dropzones = document.querySelectorAll('.tier-dropzone, #character-pool');
+            dropzones.forEach(zone => {
+                zone.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    if(!zone.classList.contains('dropzone-active')) { zone.classList.add('dropzone-active'); }
+                });
+
+                zone.addEventListener('dragleave', e => { zone.classList.remove('dropzone-active'); });
+
+                zone.addEventListener('drop', e => {
+                    e.preventDefault();
+                    zone.classList.remove('dropzone-active');
+                    let innerDrop = zone.classList.contains('tier-dropzone') ? zone.querySelector('.dropzone-inner') : zone;
+                    if(!innerDrop) innerDrop = zone; 
+                    
+                    const id = e.dataTransfer.getData('text/plain');
+                    const element = document.getElementById(id);
+                    
+                    if (!element && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                        handleFiles(e.dataTransfer.files, { type: 'tierlist' });
+                        return;
+                    }
+
+                    if (element && draggedItem === element) {
+                        innerDrop.appendChild(element);
+                        checkEmptyState();
+                        triggerAutoSave();
+                    }
+                });
+            });
+
+            document.body.addEventListener('dragover', e => { e.preventDefault(); });
+            document.body.addEventListener('drop', e => {
+                e.preventDefault();
+                if(e.target.closest('.tier-dropzone') || e.target.closest('#character-pool')) return;
+                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                    handleFiles(e.dataTransfer.files, { type: 'tierlist' });
+                }
+            });
+        }
+
+        function checkEmptyState() {
+            const pool = document.getElementById('character-pool');
+            const items = pool.querySelectorAll('.character-item');
+            const emptyState = document.getElementById('empty-state');
+            if(emptyState) {
+                if (items.length === 0) emptyState.style.display = 'flex';
+                else emptyState.style.display = 'none';
+            }
+        }
+
+        function updateCharCount() {
+            const count = document.querySelectorAll('.character-item').length;
+            const el = document.getElementById('char-count');
+            if(el) el.innerText = count;
+            checkEmptyState();
+        }
+
+        // ----------------------------------------------------
+        // 5. ระบบเซฟ/โหลด State Management & Auto-Updater
+        // ----------------------------------------------------
+        function getCurrentState(includeImages = true) {
+            const state = {
+                app: "FicAnime_PowerScaling",
+                version: 26, 
+                timestamp: new Date().toISOString(),
+                bgSettings: bgSettings,
+                menuImages: window.menuImagesState || {},
+                characters: [], 
+                wikiDatabase: wikiDatabase, 
+                itemsDatabase: itemsDatabase,
+                sidebarData: sidebarData,
+                itemsSidebarData: itemsSidebarData,
+                tierData: tierData 
+            };
+
+            if (!includeImages) return state;
+
+            const allChars = document.querySelectorAll('.character-item');
+            allChars.forEach(char => {
+                let location = "pool";
+                const parentZone = char.closest('.tier-dropzone');
+                if (parentZone) location = parentZone.dataset.tier;
+                
+                const img = char.querySelector('img');
+                const hasBadge = char.dataset.hasBadge === "true";
+
+                state.characters.push({
+                    id: char.id, location: location, src: img.src, hasBadge: hasBadge
+                });
+            });
+            return state;
+        }
+
+        function loadState(stateObj) {
+            if (stateObj.bgSettings) {
+                bgSettings = stateObj.bgSettings;
+                updateStatIconPreviews();
+            }
+
+            if (stateObj.menuImages) {
+                window.menuImagesState = stateObj.menuImages;
+                for (const [imgId, src] of Object.entries(stateObj.menuImages)) {
+                    const img = document.getElementById(imgId);
+                    if (img && src) {
+                        img.src = src;
+                        img.classList.remove('hidden');
+                        
+                        let placeholderId = imgId.replace('img', 'icon'); 
+                        if (imgId === 'menu-banner-img') placeholderId = 'menu-banner-placeholder';
+                        
+                        const placeholder = document.getElementById(placeholderId);
+                        if (placeholder) placeholder.classList.add('hidden');
+                    }
+                }
+            }
+
+            if (stateObj.tierData) {
+                tierData = stateObj.tierData;
+                initTierList();
+            }
+
+            if (stateObj.wikiDatabase) {
+                wikiDatabase = stateObj.wikiDatabase;
+                for (let key in wikiDatabase) {
+                    if(!wikiDatabase[key].extraInfo) wikiDatabase[key].extraInfo = { tier: "", power: "", weapon: "", origin: "" };
+                    if(!wikiDatabase[key].extraInfoTitles) wikiDatabase[key].extraInfoTitles = {};
+                }
+            } else if (stateObj.characterDatabase) {
+                wikiDatabase = stateObj.characterDatabase;
+            }
+
+            if (stateObj.itemsDatabase) {
+                itemsDatabase = stateObj.itemsDatabase;
+            } else {
+                itemsDatabase = {};
+            }
+
+            if (stateObj.sidebarData) sidebarData = stateObj.sidebarData;
+            if (stateObj.itemsSidebarData) itemsSidebarData = stateObj.itemsSidebarData;
+
+            document.getElementById('character-pool').innerHTML = '<div id="empty-state" class="w-full h-full flex flex-col items-center justify-center text-slate-500 opacity-50 select-none pointer-events-none"><svg class="w-12 h-12 mb-3 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg><p class="text-sm font-medium text-center tracking-wide">ลากไฟล์รูปภาพมาวางที่นี่<br>เพื่อเตรียมจัดอันดับ</p></div>';
+            document.querySelectorAll('.dropzone-inner').forEach(dz => dz.innerHTML = '');
+
+            if (!stateObj || !stateObj.characters || stateObj.characters.length === 0) {
+                updateCharCount();
+                return;
+            }
+
+            stateObj.characters.forEach(cData => {
+                const charEl = createCharacter(cData.src, cData.id, cData.hasBadge);
+                if (cData.location === 'pool') {
+                    document.getElementById('character-pool').appendChild(charEl);
+                } else {
+                    const targetZone = document.querySelector(`.tier-dropzone[data-tier="${cData.location}"] .dropzone-inner`);
+                    if (targetZone) targetZone.appendChild(charEl);
+                    else document.getElementById('character-pool').appendChild(charEl);
+                }
+            });
+            updateCharCount();
+        }
+
+        function triggerAutoSave() {
+            const state = getCurrentState(true);
+            try {
+                localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+                const now = new Date();
+                updateSaveStatus(`บันทึกอัตโนมัติ: ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`);
+            } catch (e) {
+                console.error(e);
+                updateSaveStatus("พื้นที่เต็ม! ลบรูปบางส่วน", true);
+                showMessage("พื้นที่เก็บข้อมูลเต็ม ไม่สามารถเซฟอัตโนมัติได้", "error");
+            }
+        }
+
+        function loadFromLocalStorage() {
+            const savedStr = localStorage.getItem(SAVE_KEY);
+            if (savedStr) {
+                try {
+                    const state = JSON.parse(savedStr);
+                    loadState(state);
+                    updateSaveStatus("กู้คืนข้อมูลล่าสุดสำเร็จ");
+                } catch (e) {
+                    console.error("Save corrupted", e);
+                }
+            } else {
+                updateSaveStatus("พร้อมใช้งาน");
+            }
+        }
+
+        function exportHtmlFile(includeImages) {
+            const state = getCurrentState(includeImages);
+            const htmlClone = document.documentElement.cloneNode(true);
+            
+            const listContainer = htmlClone.querySelector('#table-wrapper');
+            if (listContainer) listContainer.innerHTML = '';
+            const pool = htmlClone.querySelector('#character-pool');
+            if (pool) pool.innerHTML = '';
+            
+            const cropperUi = htmlClone.querySelector('.cropper-container');
+            if (cropperUi) cropperUi.remove();
+            const cropTarget = htmlClone.querySelector('#crop-image-target');
+            if (cropTarget) { cropTarget.src = ''; cropTarget.className = 'max-h-full max-w-full block'; }
+            
+            const saveText = htmlClone.querySelector('#save-text');
+            if (saveText) saveText.innerText = 'โหลดสำเร็จจากไฟล์เซฟ';
+            
+            const oldStateScript = htmlClone.querySelector('#injected-state');
+            if (oldStateScript) oldStateScript.remove();
+            
+            const script = document.createElement('script');
+            script.id = 'injected-state';
+            script.textContent = 'window.__INJECTED_STATE__ = ' + JSON.stringify(state) + ';';
+            htmlClone.querySelector('body').appendChild(script);
+            
+            const htmlString = '<!DOCTYPE html>\n<html lang="th">\n' + htmlClone.innerHTML + '\n</html>';
+            const blob = new Blob([htmlString], { type: 'text/html;charset=utf-8' });
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.href = URL.createObjectURL(blob);
+            
+            const suffix = includeImages ? "With-Images" : "Empty";
+            downloadAnchorNode.download = `Fic_Anime_Tier_List_${suffix}.html`;
+            
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            document.body.removeChild(downloadAnchorNode);
+            URL.revokeObjectURL(downloadAnchorNode.href);
+            
+            showMessage(includeImages ? "บันทึกไฟล์ HTML (รวมรูป) สำเร็จ!" : "บันทึกไฟล์ HTML ตารางเปล่าสำเร็จ!", "success");
+        }
+
+        // ฟังก์ชันอัปโหลดได้ทั้ง .html และ .js เพื่ออัปเดตระบบทันที
+        function handleCodeUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const ext = file.name.split('.').pop().toLowerCase();
+            const reader = new FileReader();
+
+            reader.onload = function(evt) {
+                const content = evt.target.result;
+
+                if (ext === 'js') {
+                    try {
+                        const script = document.createElement('script');
+                        script.textContent = content;
+                        document.body.appendChild(script);
+                        triggerAutoSave();
+                        showMessage("รันโค้ด JavaScript อัปเดตระบบเรียบร้อย!", "success");
+                    } catch (err) {
+                        console.error(err);
+                        showMessage("เกิดข้อผิดพลาดในไฟล์ JS", "error");
+                    }
+                } 
+                else if (ext === 'html') {
+                    try {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(content, 'text/html');
+                        const scriptNode = doc.getElementById('injected-state');
+                        
+                        if (scriptNode) {
+                            const jsonStr = scriptNode.textContent.replace('window.__INJECTED_STATE__ = ', '').trim().replace(/;$/, '');
+                            const state = JSON.parse(jsonStr);
+                            loadState(state);
+                            triggerAutoSave();
+                            showMessage("นำเข้าและอัปเดตข้อมูล HTML สำเร็จ!", "success");
+                        } else { 
+                            showMessage("ไม่พบข้อมูลเซฟในไฟล์ HTML นี้", "error"); 
+                        }
+                    } catch (err) { 
+                        console.error(err); 
+                        showMessage("โครงสร้างไฟล์ HTML มีปัญหา", "error"); 
+                    }
+                }
+            };
+            reader.readAsText(file);
+            input.value = '';
+        }
+
+        document.getElementById('btn-export-with-img').addEventListener('click', () => exportHtmlFile(true));
+        document.getElementById('btn-export-no-img').addEventListener('click', () => exportHtmlFile(false));
+
+        // ----------------------------------------------------
+        // 6. จัดการไฟล์ภาพ
+        // ----------------------------------------------------
+        function handleStatIconUpload(input, iconKey) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    bgSettings[iconKey] = e.target.result;
+                    updateStatIconPreviews();
+                    triggerAutoSave();
+                    
+                    if(!document.getElementById('view-characters').classList.contains('hidden')) renderCharacterGrid();
+                    
+                    const detailIcon = document.getElementById('detail-view-' + iconKey);
+                    if (detailIcon) detailIcon.innerHTML = getIconHTML(iconKey, '');
+                    
+                    showMessage("เปลี่ยนไอคอนสำเร็จ!", "success");
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+            input.value = '';
+        }
+
+        function updateStatIconPreviews() {
+            for(let i=1; i<=4; i++) {
+                const key = 'icon'+i;
+                const container = document.getElementById('preview-' + key);
+                if(container) {
+                    if(bgSettings && bgSettings[key]) {
+                        container.innerHTML = `<img src="${bgSettings[key]}" class="w-full h-full object-contain">`;
+                    } else {
+                        container.innerHTML = defaultIcons[key];
+                    }
+                }
+            }
+        }
+
+        function handleFiles(files, context) {
+            const validFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
+            if (validFiles.length === 0) return;
+            
+            const queueItems = validFiles.map(file => ({ file, context }));
+            fileQueue.push(...queueItems);
+            processQueue();
+        }
+
+        function processQueue() {
+            if (isCropping || fileQueue.length === 0) return;
+            isCropping = true;
+            
+            const currentItem = fileQueue.shift();
+            uploadTargetContext = currentItem.context; 
+            
+            const url = URL.createObjectURL(currentItem.file);
+            const imgTarget = document.getElementById('crop-image-target');
+            imgTarget.src = url;
+            const modal = document.getElementById('crop-modal');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            
+            imgTarget.onload = () => {
+                if (cropper) cropper.destroy();
+                cropper = new Cropper(imgTarget, { aspectRatio: 1, viewMode: 1, dragMode: 'move', background: false, autoCropArea: 1, guides: true, highlight: false, cropBoxMovable: true, cropBoxResizable: true });
+            };
+        }
+
+        function closeCropModal() {
+            const modal = document.getElementById('crop-modal');
+            modal.classList.add('hidden'); modal.classList.remove('flex');
+            if (cropper) { cropper.destroy(); cropper = null; }
+            document.getElementById('crop-image-target').src = '';
+            isCropping = false;
+        }
+
+        document.getElementById('btn-save-crop').addEventListener('click', () => {
+            if (!cropper) return;
+            const canvas = cropper.getCroppedCanvas({ width: 200, height: 200 });
+            const croppedUrl = canvas.toDataURL('image/jpeg', 0.85); 
+            
+            if (uploadTargetContext && uploadTargetContext.type === 'wiki') {
+                const id = 'wiki_char_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+                wikiDatabase[id] = {
+                    id: id,
+                    src: croppedUrl,
+                    categoryId: uploadTargetContext.categoryId,
+                    name: "ไม่ทราบชื่อ",
+                    subtitle: "รายละเอียด",
+                    stats: { tier: "--", origin: "--", power: "--", weapon: "--" },
+                    bio: "ยังไม่มีข้อมูลประวัติ...",
+                    watermark: "",
+                    extraInfo: { tier: "", power: "", weapon: "", origin: "" },
+                    extraInfoTitles: {} 
+                };
+                if(!document.getElementById('view-characters').classList.contains('hidden')) renderCharacterGrid();
+            } else if (uploadTargetContext && uploadTargetContext.type === 'item') {
+                const id = 'item_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+                itemsDatabase[id] = {
+                    id: id,
+                    src: croppedUrl,
+                    categoryId: currentActiveItemSubId, // บันทึกหมวดหมู่ไอเท็ม
+                    name: "ไอเท็มใหม่ (คลิกเพื่อแก้ไข)",
+                    stars: "✦✦✦",
+                    tag1: "3 ดาว",
+                    tag2: "วัสดุใช้งาน",
+                    desc: "พิมพ์คำอธิบายไอเท็มที่นี่..."
+                };
+                if(!document.getElementById('view-items').classList.contains('hidden')) renderItemsGrid();
+            } else {
+                const pool = document.getElementById('character-pool');
+                const charEl = createCharacter(croppedUrl);
+                pool.appendChild(charEl);
+                updateCharCount();
+                if(document.getElementById('empty-state')) document.getElementById('empty-state').style.display = 'none';
+            }
+            
+            closeCropModal(); triggerAutoSave(); processQueue(); 
+        });
+
+        document.getElementById('btn-cancel-crop').addEventListener('click', () => { closeCropModal(); processQueue(); });
+
+        function uploadToTierlist(input) { handleFiles(input.files, { type: 'tierlist' }); input.value = ''; }
+        function uploadToWiki(input) { handleFiles(input.files, { type: 'wiki', categoryId: currentActiveSubId }); input.value = ''; }
+
+        document.getElementById('btn-clear-pool').addEventListener('click', () => {
+            if(confirm("แน่ใจหรือไม่ว่าต้องการล้างรูปภาพในคลังด้านล่างทิ้งทั้งหมด? (ข้อมูลในหน้าตัวละครจะไม่หายไป)")) {
+                const pool = document.getElementById('character-pool');
+                const items = pool.querySelectorAll('.character-item');
+                items.forEach(i => i.remove());
+                updateCharCount(); triggerAutoSave(); showMessage("ล้างรูปในคลังเรียบร้อย", "info");
+            }
+        });
+
+        // ----------------------------------------------------
+        // 7. การส่งออกรูปภาพ (html2canvas)
+        // ----------------------------------------------------
+        const openExportModal = () => {
+            const items = document.querySelectorAll('.character-item');
+            if(items.length === 0) { showMessage("ยังไม่มีตัวละครในกระดาน โปรดเพิ่มรูปก่อนบันทึก", "error"); return; }
+            const modal = document.getElementById('export-modal');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+        };
+        const closeExportModal = () => { const modal = document.getElementById('export-modal'); modal.classList.add('hidden'); modal.classList.remove('flex'); };
+
+        const exportImage = (scaleValue) => {
+            closeExportModal(); 
+            const container = document.getElementById('tier-list-container');
+            showMessage(`กำลังประมวลผลรูปภาพ (${scaleValue}x) กรุณารอสักครู่...`, "info");
+            document.body.classList.add('exporting');
+            
+            setTimeout(() => {
+                html2canvas(container, { backgroundColor: '#000000', scale: scaleValue, useCORS: true, logging: false, allowTaint: true })
+                .then(canvas => {
+                    document.body.classList.remove('exporting');
+                    const link = document.createElement('a');
+                    link.download = `FicAnime-PowerScaling-TierList-${scaleValue}x.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                    showMessage("บันทึกรูปภาพเรียบร้อย!", "success");
+                }).catch(err => {
+                    document.body.classList.remove('exporting'); showMessage("เกิดข้อผิดพลาดในการบันทึกภาพ", "error"); console.error(err);
+                });
+            }, 100);
+        };
+
+        document.getElementById('btn-download').addEventListener('click', openExportModal);
+        document.getElementById('btn-download-mobile').addEventListener('click', openExportModal);
+        document.getElementById('btn-cancel-export').addEventListener('click', closeExportModal);
+        document.querySelectorAll('.export-res-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const targetBtn = e.target.closest('.export-res-btn');
+                const scale = parseInt(targetBtn.dataset.scale);
+                exportImage(scale);
+            });
+        });
+
+        // ----------------------------------------------------
+        // 8. ฟังก์ชันจัดการเมนูสารบัญแบบครอบจักรวาล (Characters & Items)
+        // ----------------------------------------------------
+        
+        // Helper สำหรับหาว่าเมนูที่กดอยู่เป็นของ Characters หรือ Items
+        function getTargetMenuInfo(id, parentId, isSub) {
+            let target = null;
+            let type = 'characters';
+
+            if(!isSub) {
+                target = sidebarData.find(m => m.id === id);
+                if(!target) {
+                    target = itemsSidebarData.find(m => m.id === id);
+                    if(target) type = 'items';
+                }
+            } else {
+                let parent = sidebarData.find(m => m.id === parentId);
+                if(parent) {
+                    target = parent.subItems.find(s => s.id === id);
+                } else {
+                    parent = itemsSidebarData.find(m => m.id === parentId);
+                    if(parent) {
+                        target = parent.subItems.find(s => s.id === id);
+                        type = 'items';
+                    }
+                }
+            }
+            return { target, type };
+        }
+
+        // --- สำหรับหน้าตัวละคร (Characters) ---
+        function renderSidebar() {
+            const container = document.getElementById('wiki-sidebar-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            sidebarData.forEach(menu => {
+                const mainEl = document.createElement('div');
+                mainEl.className = 'mb-1';
+                mainEl.innerHTML = `
+                    <div class="rounded-lg px-3 py-3 cursor-pointer flex items-center justify-between transition-all group ${menu.isOpen ? 'bg-[#2a2d3e]/40 border border-[#e3b85a]' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 border border-transparent'}" onclick="toggleMainMenu('${menu.id}')">
+                        <div class="flex items-center gap-3 font-bold text-[15px] ${menu.isOpen ? 'text-[#e3b85a]' : ''}">
+                            <svg class="w-[18px] h-[18px] ${menu.isOpen ? 'text-[#e3b85a]' : 'text-slate-400 group-hover:text-white'}" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M4 6c0-1.1.9-2 2-2h5v16H6c-1.1 0-2-.9-2-2V6zm16 0c0-1.1-.9-2-2-2h-5v16h5c1.1 0 2-.9 2-2V6z"></path>
+                            </svg>
+                            ${menu.title}
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="openMenuSettings(event, '${menu.id}', false, null)" class="${menu.isOpen ? 'opacity-100 text-slate-300 hover:text-white' : 'opacity-0 group-hover:opacity-100 text-slate-400 hover:text-white'} transition-opacity p-1" title="ตั้งค่าเมนู">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            </button>
+                            <svg class="w-4 h-4 transform transition-transform ${menu.isOpen ? 'text-[#e3b85a] rotate-180' : 'text-slate-400 group-hover:text-white -rotate-90'}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </div>
+                `;
+                
+                if (menu.isOpen && menu.subItems.length > 0) {
+                    const subContainer = document.createElement('div');
+                    subContainer.className = 'pl-[34px] pr-2 space-y-1 mt-1 mb-3';
+                    
+                    menu.subItems.forEach(sub => {
+                        const isActive = sub.id === currentActiveSubId;
+                        const subEl = document.createElement('div');
+                        subEl.className = `rounded-lg py-2 px-3 cursor-pointer flex items-center justify-between group transition-colors ${isActive ? 'bg-[#2a2d3e]/80 border border-[#e3b85a]/50' : 'hover:bg-slate-800/30 border border-transparent'}`;
+                        subEl.onclick = () => { selectSubMenu(sub.id, sub.title); };
+                        
+                        subEl.innerHTML = `
+                            <div class="text-[14px] ${isActive ? 'text-[#e3b85a] font-bold' : 'text-slate-400 font-medium group-hover:text-white'} transition-colors">
+                                ${sub.title}
+                            </div>
+                            <button onclick="openMenuSettings(event, '${sub.id}', true, '${menu.id}')" class="${isActive ? 'opacity-100 text-[#e3b85a]' : 'opacity-0 group-hover:opacity-100 text-slate-400 hover:text-white'} transition-opacity p-1" title="ตั้งค่าเมนูย่อย">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            </button>
+                        `;
+                        subContainer.appendChild(subEl);
+                    });
+                    mainEl.appendChild(subContainer);
+                }
+                container.appendChild(mainEl);
+            });
+        }
+
+        // --- สำหรับหน้าไอเท็ม (Items) ---
+        function renderItemsSidebar() {
+            const container = document.getElementById('items-sidebar-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            itemsSidebarData.forEach(menu => {
+                const mainEl = document.createElement('div');
+                mainEl.className = 'mb-1';
+                mainEl.innerHTML = `
+                    <div class="rounded-lg px-3 py-3 cursor-pointer flex items-center justify-between transition-all group ${menu.isOpen ? 'bg-[#2a2d3e]/40 border border-[#e3b85a]' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 border border-transparent'}" onclick="toggleItemMainMenu('${menu.id}')">
+                        <div class="flex items-center gap-3 font-bold text-[15px] ${menu.isOpen ? 'text-[#e3b85a]' : ''}">
+                            <svg class="w-[18px] h-[18px] ${menu.isOpen ? 'text-[#e3b85a]' : 'text-slate-400 group-hover:text-white'}" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M4 6c0-1.1.9-2 2-2h5v16H6c-1.1 0-2-.9-2-2V6zm16 0c0-1.1-.9-2-2-2h-5v16h5c1.1 0 2-.9 2-2V6z"></path>
+                            </svg>
+                            ${menu.title}
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="openMenuSettings(event, '${menu.id}', false, null)" class="${menu.isOpen ? 'opacity-100 text-slate-300 hover:text-white' : 'opacity-0 group-hover:opacity-100 text-slate-400 hover:text-white'} transition-opacity p-1" title="ตั้งค่าเมนู">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            </button>
+                            <svg class="w-4 h-4 transform transition-transform ${menu.isOpen ? 'text-[#e3b85a] rotate-180' : 'text-slate-400 group-hover:text-white -rotate-90'}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </div>
+                `;
+                
+                if (menu.isOpen && menu.subItems.length > 0) {
+                    const subContainer = document.createElement('div');
+                    subContainer.className = 'pl-[34px] pr-2 space-y-1 mt-1 mb-3';
+                    
+                    menu.subItems.forEach(sub => {
+                        const isActive = sub.id === currentActiveItemSubId;
+                        const subEl = document.createElement('div');
+                        subEl.className = `rounded-lg py-2 px-3 cursor-pointer flex items-center justify-between group transition-colors ${isActive ? 'bg-[#2a2d3e]/80 border border-[#e3b85a]/50' : 'hover:bg-slate-800/30 border border-transparent'}`;
+                        subEl.onclick = () => { selectItemSubMenu(sub.id, sub.title); };
+                        
+                        subEl.innerHTML = `
+                            <div class="text-[14px] ${isActive ? 'text-[#e3b85a] font-bold' : 'text-slate-400 font-medium group-hover:text-white'} transition-colors">
+                                ${sub.title}
+                            </div>
+                            <button onclick="openMenuSettings(event, '${sub.id}', true, '${menu.id}')" class="${isActive ? 'opacity-100 text-[#e3b85a]' : 'opacity-0 group-hover:opacity-100 text-slate-400 hover:text-white'} transition-opacity p-1" title="ตั้งค่าเมนูย่อย">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            </button>
+                        `;
+                        subContainer.appendChild(subEl);
+                    });
+                    mainEl.appendChild(subContainer);
+                }
+                container.appendChild(mainEl);
+            });
+        }
+
+        // Functions for Toggle and Select
+        function toggleMainMenu(id) { const menu = sidebarData.find(m => m.id === id); if(menu) { menu.isOpen = !menu.isOpen; renderSidebar(); triggerAutoSave(); } }
+        function toggleItemMainMenu(id) { const menu = itemsSidebarData.find(m => m.id === id); if(menu) { menu.isOpen = !menu.isOpen; renderItemsSidebar(); triggerAutoSave(); } }
+
+        function selectSubMenu(id, title) {
+            currentActiveSubId = id;
+            document.getElementById('content-breadcrumb').innerText = title;
+            document.getElementById('content-title').innerText = title;
+            renderSidebar();
+            renderCharacterGrid();
+        }
+
+        function selectItemSubMenu(id, title) {
+            currentActiveItemSubId = id;
+            renderItemsSidebar();
+            renderItemsGrid();
+        }
+
+        // Functions for Settings Modal
+        function openMenuSettings(e, id, isSub, parentId) {
+            e.stopPropagation();
+            editingMenuId = id; editingIsSub = isSub; editingParentId = parentId;
+
+            const modal = document.getElementById('menu-action-modal');
+            const btnAddSub = document.getElementById('btn-add-submenu');
+            const titleEl = document.getElementById('modal-menu-title');
+
+            if(isSub) { titleEl.innerText = "ตั้งค่าเมนูย่อย"; btnAddSub.style.display = 'none'; } 
+            else { titleEl.innerText = "ตั้งค่าหมวดหมู่หลัก"; btnAddSub.style.display = 'flex'; }
+
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            setTimeout(() => { document.getElementById('menu-modal-box').classList.remove('scale-95'); document.getElementById('menu-modal-box').classList.add('scale-100'); }, 10);
+        }
+
+        function closeMenuSettings() {
+            const modal = document.getElementById('menu-action-modal');
+            document.getElementById('menu-modal-box').classList.remove('scale-100'); document.getElementById('menu-modal-box').classList.add('scale-95');
+            setTimeout(() => { modal.classList.remove('flex'); modal.classList.add('hidden'); }, 200);
+        }
+
+        function handleEditMenuName() {
+            const { target, type } = getTargetMenuInfo(editingMenuId, editingParentId, editingIsSub);
+            if(!target) return;
+
+            const newName = prompt("แก้ไขชื่อข้อความ:", target.title);
+            if(newName && newName.trim() !== '') {
+                target.title = newName.trim();
+                if(type === 'items') {
+                    renderItemsSidebar();
+                } else {
+                    if(editingMenuId === currentActiveSubId) {
+                        document.getElementById('content-breadcrumb').innerText = target.title;
+                        document.getElementById('content-title').innerText = target.title;
+                    }
+                    renderSidebar();
+                }
+                triggerAutoSave();
+            }
+            closeMenuSettings();
+        }
+
+        function handleAddSubMenu() {
+            const { target, type } = getTargetMenuInfo(editingMenuId, editingParentId, false);
+            if(!target) return;
+
+            const newName = prompt("ระบุชื่อเมนูย่อยใหม่:");
+            if(newName && newName.trim() !== '') {
+                target.subItems.push({
+                    id: (type === 'items' ? 'item_sub_' : 'sub_') + Date.now(),
+                    title: newName.trim()
+                });
+                target.isOpen = true; 
+                if(type === 'items') renderItemsSidebar();
+                else renderSidebar();
+                triggerAutoSave();
+            }
+            closeMenuSettings();
+        }
+
+        function handleDeleteMenu() {
+            if(confirm("คุณแน่ใจหรือไม่ที่จะลบเมนูนี้? (หากลบหมวดหมู่หลัก เมนูย่อยข้างในจะถูกลบไปด้วย)")) {
+                const { type } = getTargetMenuInfo(editingMenuId, editingParentId, editingIsSub);
+                
+                if(type === 'characters') {
+                    if(!editingIsSub) sidebarData = sidebarData.filter(m => m.id !== editingMenuId);
+                    else {
+                        const parent = sidebarData.find(m => m.id === editingParentId);
+                        parent.subItems = parent.subItems.filter(s => s.id !== editingMenuId);
+                    }
+                    renderSidebar();
+                } else {
+                    if(!editingIsSub) itemsSidebarData = itemsSidebarData.filter(m => m.id !== editingMenuId);
+                    else {
+                        const parent = itemsSidebarData.find(m => m.id === editingParentId);
+                        parent.subItems = parent.subItems.filter(s => s.id !== editingMenuId);
+                    }
+                    renderItemsSidebar();
+                }
+                triggerAutoSave();
+            }
+            closeMenuSettings();
+        }
+
+        function addMainSidebarMenu() {
+            const newName = prompt("ระบุชื่อหมวดหมู่หลักใหม่ (หน้าตัวละคร):");
+            if(newName && newName.trim() !== '') {
+                sidebarData.push({ id: 'menu_' + Date.now(), title: newName.trim(), isOpen: true, subItems: [] });
+                renderSidebar(); triggerAutoSave();
+            }
+        }
+
+        function addItemMainSidebarMenu() {
+            const newName = prompt("ระบุชื่อหมวดหมู่หลักใหม่ (หน้าไอเท็ม):");
+            if(newName && newName.trim() !== '') {
+                itemsSidebarData.push({ id: 'item_menu_' + Date.now(), title: newName.trim(), isOpen: true, subItems: [] });
+                renderItemsSidebar(); triggerAutoSave();
+            }
+        }
+
+        // ----------------------------------------------------
+        // 9. ฟังก์ชันสำหรับหน้าตัวละคร (CHARACTERS PAGE) 
+        // ----------------------------------------------------
+        function renderCharacterGrid() {
+            const grid = document.getElementById('character-grid');
+            grid.innerHTML = '';
+            
+            const currentChars = Object.values(wikiDatabase).filter(c => c.categoryId === currentActiveSubId);
+
+            if(currentChars.length === 0) {
+                 grid.innerHTML = '<div class="col-span-full text-center py-20 text-slate-500 bg-[#1f2231] rounded-xl border border-slate-700/50">ยังไม่มีข้อมูลในหมวดหมู่นี้<br>กด "เพิ่มรูปเข้าหมวดหมู่นี้" ด้านบนเพื่อเริ่ม</div>';
+                 return;
+            }
+
+            const gridContainer = document.createElement('div');
+            gridContainer.className = "grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 w-full";
+
+            currentChars.forEach(char => {
+                const card = document.createElement('div');
+                card.className = "character-card-wiki rounded cursor-pointer group flex relative";
+                card.onclick = () => openCharacterDetail(char.id);
+
+                card.innerHTML = `
+                    <div class="character-card-wiki-inner absolute inset-0 pointer-events-none"></div>
+
+                    <div class="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-30">
+                        <button onclick="openCharacterDetail('${char.id}'); event.stopPropagation();" class="bg-blue-600/90 text-white p-1.5 rounded hover:bg-blue-500 transition-colors shadow border border-blue-400" title="แก้ไขข้อมูล">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        </button>
+                        <label class="cursor-pointer bg-slate-700/90 text-slate-300 hover:text-white p-1.5 rounded shadow border border-slate-500 hover:bg-slate-600 transition-colors" title="เปลี่ยนลายน้ำด้านหลัง" onclick="event.stopPropagation()">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            <input type="file" class="hidden" accept="image/*" onchange="handleWatermarkUpload(this, '${char.id}')">
+                        </label>
+                        <button onclick="deleteCharacterFromWiki(event, '${char.id}')" class="bg-rose-600/90 text-white p-1.5 rounded hover:bg-rose-500 transition-colors shadow border border-rose-400" title="ลบข้อมูล">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </div>
+
+                    ${char.watermark ? `<img src="${char.watermark}" class="absolute right-[-10%] top-1/2 -translate-y-1/2 h-[120%] opacity-[0.05] grayscale pointer-events-none" />` : ''}
+
+                    <div class="w-[110px] md:w-[130px] shrink-0 p-3 z-10 relative">
+                        <div class="w-full h-[60px] md:h-[90px] bg-[#1a1c29] rounded relative overflow-hidden border border-[#3b3f5c] shadow-inner flex items-center justify-center">
+                            <img src="${char.src}" class="max-w-full max-h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                            <div class="absolute top-1 left-1 w-1.5 h-1.5 border-t border-l border-slate-500 opacity-50"></div>
+                            <div class="absolute top-1 right-1 w-1.5 h-1.5 border-t border-r border-slate-500 opacity-50"></div>
+                            <div class="absolute bottom-1 left-1 w-1.5 h-1.5 border-b border-l border-slate-500 opacity-50"></div>
+                            <div class="absolute bottom-1 right-1 w-1.5 h-1.5 border-b border-r border-slate-500 opacity-50"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col flex-1 py-3 pr-4 md:pr-6 z-10 relative justify-center">
+                        <h3 class="font-bold text-[#e1c180] text-lg md:text-xl truncate group-hover:text-amber-300 transition-colors drop-shadow-sm">${char.name}</h3>
+                        <p class="text-[#a4a9b6] text-xs md:text-sm truncate font-medium mt-0.5 mb-2">${char.subtitle || '-'}</p>
+                        
+                        <div class="grid grid-cols-2 gap-x-6 gap-y-2 text-xs text-[#a4a9b6] mt-3">
+                            <div class="stat-row">
+                                ${getIconHTML('icon1', 'mr-2')}
+                                <span class="flex-1 text-left font-medium text-slate-300 truncate">${char.stats.tier}</span>
+                            </div>
+                            <div class="stat-row">
+                                ${getIconHTML('icon2', 'mr-2')}
+                                <span class="flex-1 text-left font-medium text-slate-300 truncate">${char.stats.power}</span>
+                            </div>
+                            <div class="stat-row">
+                                ${getIconHTML('icon3', 'mr-2')}
+                                <span class="flex-1 text-left font-medium text-slate-300 truncate">${char.stats.weapon}</span>
+                            </div>
+                            <div class="stat-row">
+                                ${getIconHTML('icon4', 'mr-2')}
+                                <span class="flex-1 text-left font-medium text-slate-300 truncate">${char.stats.origin}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                gridContainer.appendChild(card);
+            });
+
+            grid.appendChild(gridContainer);
+        }
+
+        function deleteCharacterFromWiki(e, id) {
+            e.stopPropagation(); 
+            if(confirm("แน่ใจหรือไม่ว่าต้องการลบข้อมูลนี้ออกจากระบบ?")) {
+                delete wikiDatabase[id]; 
+                triggerAutoSave();
+                renderCharacterGrid(); 
+                showMessage("ลบข้อมูลสำเร็จ", "info");
+            }
+        }
+
+        function handleWatermarkUpload(input, id) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                     if(wikiDatabase[id]) {
+                         wikiDatabase[id].watermark = e.target.result;
+                         triggerAutoSave();
+                         renderCharacterGrid();
+                         showMessage("เพิ่มลายน้ำสำเร็จ!", "success");
+                     }
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+            input.value = '';
+        }
+
+        function openCharacterDetail(id) {
+            const data = wikiDatabase[id];
+            if(!data) return;
+            
+            currentDetailId = id;
+            document.getElementById('detail-img').src = data.src;
+            document.getElementById('detail-name').innerText = data.name;
+            document.getElementById('detail-subtitle').innerText = data.subtitle;
+            document.getElementById('detail-tier').innerText = data.stats.tier;
+            document.getElementById('detail-origin').innerText = data.stats.origin;
+            document.getElementById('detail-power').innerText = data.stats.power;
+            document.getElementById('detail-weapon').innerText = data.stats.weapon;
+            document.getElementById('detail-bio').innerText = data.bio;
+            
+            document.getElementById('detail-view-icon1').innerHTML = getIconHTML('icon1', '');
+            document.getElementById('detail-view-icon2').innerHTML = getIconHTML('icon2', '');
+            document.getElementById('detail-view-icon3').innerHTML = getIconHTML('icon3', '');
+            document.getElementById('detail-view-icon4').innerHTML = getIconHTML('icon4', '');
+
+            switchView('view-character-detail');
+        }
+
+        function saveCharacterDetails() {
+            if(!currentDetailId || !wikiDatabase[currentDetailId]) return;
+
+            wikiDatabase[currentDetailId].name = document.getElementById('detail-name').innerText;
+            wikiDatabase[currentDetailId].subtitle = document.getElementById('detail-subtitle').innerText;
+            wikiDatabase[currentDetailId].stats.tier = document.getElementById('detail-tier').innerText;
+            wikiDatabase[currentDetailId].stats.origin = document.getElementById('detail-origin').innerText;
+            wikiDatabase[currentDetailId].stats.power = document.getElementById('detail-power').innerText;
+            wikiDatabase[currentDetailId].stats.weapon = document.getElementById('detail-weapon').innerText;
+            wikiDatabase[currentDetailId].bio = document.getElementById('detail-bio').innerText;
+            
+            triggerAutoSave();
+            renderCharacterGrid();
+        }
+
+        function handleUpdateCharacterImage(input) {
+             if (input.files && input.files[0] && currentDetailId) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                     document.getElementById('detail-img').src = e.target.result;
+                     if(wikiDatabase[currentDetailId]) {
+                         wikiDatabase[currentDetailId].src = e.target.result;
+                     }
+                     triggerAutoSave();
+                     renderCharacterGrid(); 
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // --- ระบบเปิดหน้าต่างข้อมูลเพิ่มเติม (Extra Info) ---
+        function openExtraInfoModal(statKey, statName) {
+            if(!currentDetailId || !wikiDatabase[currentDetailId]) return;
+            currentExtraInfoStat = statKey;
+            const data = wikiDatabase[currentDetailId];
+            
+            if(!data.extraInfo) { data.extraInfo = { tier: "", power: "", weapon: "", origin: "" }; }
+            if(!data.extraInfoTitles) { data.extraInfoTitles = {}; }
+            
+            let customTitle = data.extraInfoTitles[statKey];
+            if (!customTitle || customTitle.trim() === '') {
+                customTitle = `${data.name} - ข้อมูลเพิ่มเติม`;
+            }
+            
+            const content = data.extraInfo[statKey] || `ยังไม่มีข้อมูลเจาะลึกของ [${statName}]...`;
+            
+            document.getElementById('extra-info-title').innerText = customTitle;
+            document.getElementById('extra-info-content').innerHTML = content; 
+            
+            const modal = document.getElementById('extra-info-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            document.getElementById('extra-info-dropdown').classList.add('hidden');
+        }
+
+        function closeExtraInfoModal() {
+            const modal = document.getElementById('extra-info-modal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+            document.getElementById('extra-info-dropdown').classList.add('hidden');
+        }
+        
+        function toggleExtraInfoDropdown(e) {
+            e.stopPropagation();
+            const dropdown = document.getElementById('extra-info-dropdown');
+            if (dropdown.classList.contains('hidden')) {
+                dropdown.classList.remove('hidden');
+            } else {
+                dropdown.classList.add('hidden');
+            }
+        }
+
+        function editExtraInfoTitle() {
+            document.getElementById('extra-info-dropdown').classList.add('hidden');
+            if(!currentDetailId || !currentExtraInfoStat) return;
+            
+            const data = wikiDatabase[currentDetailId];
+            let currentTitle = data.extraInfoTitles[currentExtraInfoStat] || `${data.name} - ข้อมูลเพิ่มเติม`;
+            
+            const newTitle = prompt("ระบุหัวข้อที่ต้องการแสดง:", currentTitle);
+            if(newTitle !== null) {
+                data.extraInfoTitles[currentExtraInfoStat] = newTitle.trim();
+                document.getElementById('extra-info-title').innerText = newTitle.trim() || `${data.name} - ข้อมูลเพิ่มเติม`;
+                triggerAutoSave();
+            }
+        }
+
+        function openEditExtraInfoModal() {
+            document.getElementById('extra-info-dropdown').classList.add('hidden');
+            if(!currentDetailId || !currentExtraInfoStat) return;
+            const data = wikiDatabase[currentDetailId];
+            
+            if(!data.extraInfo) {
+                data.extraInfo = { tier: "", power: "", weapon: "", origin: "" };
+            }
+            
+            document.getElementById('edit-extra-info-editor').innerHTML = data.extraInfo[currentExtraInfoStat] || "";
+            
+            closeExtraInfoModal(); 
+            const editModal = document.getElementById('edit-extra-info-modal');
+            editModal.classList.remove('hidden');
+            editModal.classList.add('flex');
+        }
+
+        function closeEditExtraInfoModal() {
+            const editModal = document.getElementById('edit-extra-info-modal');
+            editModal.classList.remove('flex');
+            editModal.classList.add('hidden');
+        }
+
+        function insertLink() {
+            const url = prompt("กรุณาระบุลิงก์ (URL):", "https://");
+            if (url) {
+                document.execCommand('createLink', false, url);
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    const container = range.commonAncestorContainer;
+                    const parentElement = container.nodeType === 3 ? container.parentNode : container;
+                    if (parentElement && parentElement.tagName === 'A') {
+                        parentElement.setAttribute('target', '_blank');
+                    }
+                }
+            }
+        }
+
+        function saveExtraInfo() {
+            if(!currentDetailId || !currentExtraInfoStat) return;
+            
+            const newHTML = document.getElementById('edit-extra-info-editor').innerHTML;
+            const charData = wikiDatabase[currentDetailId];
+            
+            if (!charData) return;
+            if (!charData.extraInfo) charData.extraInfo = { tier: "", power: "", weapon: "", origin: "" };
+            
+            charData.extraInfo[currentExtraInfoStat] = newHTML;
+            
+            triggerAutoSave();
+            closeEditExtraInfoModal();
+            showMessage("บันทึกข้อมูลเพิ่มเติมสำเร็จ!", "success");
+            
+            const statNames = { tier: 'เทียร์ (Tier)', power: 'พลังและความสามารถ', weapon: 'อาวุธ', origin: 'ที่มา' };
+            openExtraInfoModal(currentExtraInfoStat, statNames[currentExtraInfoStat]);
+        }
+
+        // ----------------------------------------------------
+        // 10. ฟังก์ชันสำหรับหน้าคลังไอเท็ม (ITEMS PAGE)
+        // ----------------------------------------------------
+        function renderItemsGrid() {
+            const grid = document.getElementById('items-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            
+            // กรองไอเท็มตามหมวดหมู่ที่เลือก (ถ้าไม่มี categoryId เดิม ให้แสดงในหมวดแรกเป็น fallback)
+            const items = Object.values(itemsDatabase).filter(item => !item.categoryId || item.categoryId === currentActiveItemSubId);
+
+            if(items.length === 0) {
+                 grid.innerHTML = '<div class="col-span-full text-center py-20 text-slate-500 bg-[#1f2231] rounded-xl border border-slate-700/50">ยังไม่มีไอเท็ม<br>กดปุ่ม "เพิ่มไอเท็มใหม่" เพื่อเริ่ม</div>';
+                 return;
+            }
+
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "item-card-style relative flex items-center bg-[#1d1f2a]/90 border border-[#3b3e51] p-3 rounded cursor-pointer group transition-colors hover:border-[#8e95b0]";
+                card.onclick = () => openItemDetail(item.id);
+
+                card.innerHTML = `
+                    <div class="item-card-inner absolute inset-0 pointer-events-none"></div>
+                    
+                    <svg class="absolute right-4 top-1/2 -translate-y-1/2 w-16 h-16 text-white opacity-[0.03] pointer-events-none" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 6h-2c0-2.76-2.24-5-5-5S7 3.24 7 6H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-7-3c1.66 0 3 1.34 3 3H9c0-1.66 1.34-3 3-3zm7 17H5V8h14v12z"/>
+                        <path d="M12 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
+                    </svg>
+
+                    <div class="w-16 h-16 bg-[#1a1c29] rounded flex-shrink-0 border border-slate-600 overflow-hidden relative z-10">
+                        <img src="${item.src}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                        <div class="absolute top-0.5 left-0.5 w-1 h-1 border-t border-l border-slate-400 opacity-50"></div>
+                        <div class="absolute bottom-0.5 right-0.5 w-1 h-1 border-b border-r border-slate-400 opacity-50"></div>
+                    </div>
+
+                    <div class="ml-4 flex-1 text-slate-200 font-medium text-sm md:text-base tracking-wide z-10 truncate" title="คลิกเพื่อดูและแก้ไขรายละเอียด">
+                        ${item.name}
+                    </div>
+
+                    <div class="absolute right-3 top-1/2 -translate-y-1/2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                        <button onclick="deleteItem('${item.id}'); event.stopPropagation();" class="bg-rose-600/90 text-white p-1.5 rounded hover:bg-rose-500 transition-colors shadow" title="ลบไอเท็ม">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function deleteItem(id) {
+            if(confirm("แน่ใจหรือไม่ว่าต้องการลบไอเท็มนี้?")) {
+                delete itemsDatabase[id];
+                triggerAutoSave();
+                renderItemsGrid();
+                showMessage("ลบไอเท็มสำเร็จ", "info");
+            }
+        }
+
+        function openItemDetail(id) {
+            const data = itemsDatabase[id];
+            if(!data) return;
+
+            if(!data.stars) data.stars = "✦✦✦";
+            if(!data.tag1) data.tag1 = "3 ดาว";
+            if(!data.tag2) data.tag2 = "วัสดุใช้งาน";
+            if(!data.desc) data.desc = "พิมพ์คำอธิบายไอเท็มที่นี่...";
+
+            currentItemDetailId = id;
+            document.getElementById('item-detail-breadcrumb').innerText = data.name;
+            document.getElementById('item-detail-img').src = data.src;
+            document.getElementById('item-detail-name').innerText = data.name;
+            document.getElementById('item-detail-stars').innerText = data.stars;
+            document.getElementById('item-detail-tag1').innerText = data.tag1;
+            document.getElementById('item-detail-tag2').innerText = data.tag2;
+            document.getElementById('item-detail-desc').innerText = data.desc;
+
+            switchView('view-item-detail');
+        }
+
+        function saveItemDetails() {
+            if(!currentItemDetailId || !itemsDatabase[currentItemDetailId]) return;
+
+            const data = itemsDatabase[currentItemDetailId];
+            data.name = document.getElementById('item-detail-name').innerText;
+            data.stars = document.getElementById('item-detail-stars').innerText;
+            data.tag1 = document.getElementById('item-detail-tag1').innerText;
+            data.tag2 = document.getElementById('item-detail-tag2').innerText;
+            data.desc = document.getElementById('item-detail-desc').innerText;
+
+            document.getElementById('item-detail-breadcrumb').innerText = data.name;
+
+            triggerAutoSave();
+            renderItemsGrid(); 
+        }
+
+        function handleUpdateItemImage(input) {
+             if (input.files && input.files[0] && currentItemDetailId) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                     document.getElementById('item-detail-img').src = e.target.result;
+                     if(itemsDatabase[currentItemDetailId]) {
+                         itemsDatabase[currentItemDetailId].src = e.target.result;
+                     }
+                     triggerAutoSave();
+                     renderItemsGrid();
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+            input.value = '';
+        }
+
+        // ----------------------------------------------------
+        // 11. เริ่มต้นการทำงานเมื่อเปิดหน้าเว็บ (Initialization)
+        // ----------------------------------------------------
+        window.onload = () => {
+            initTierList();
+            updateStatIconPreviews();
+            if (window.__INJECTED_STATE__) {
+                loadState(window.__INJECTED_STATE__);
+                triggerAutoSave();
+                updateSaveStatus("โหลดข้อมูลจากไฟล์ HTML สำเร็จ");
+            } else {
+                loadFromLocalStorage(); 
+            }
+        };
+    </script>
+</body>
+</html>
